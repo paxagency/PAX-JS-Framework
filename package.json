@@ -1,0 +1,10 @@
+{
+    "name": "PAX-JS-Framework",
+    "version": "0.0.01",
+    "homepage": "http://docs.paxagency.com/js",
+    "license": "MIT",
+    "author": "Albert Kiteck <albert@paxagency.com>",
+    "description": "Minimal & Ligthweight JS Framework",
+    "style":"dist/pax.js"
+}
+
