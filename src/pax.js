@@ -94,7 +94,7 @@ $pax.prototype = {
     renderApp:function(key){
         var self = this;
         var app = this.apps[key];
-        //this.setVisible(key);
+        this.setVisible(key);
         if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
         this.renderChildren(key);
@@ -118,7 +118,6 @@ $pax.prototype = {
                 case 'UL':case 'OL':
                     if(!app.temp[id]) app.temp[id] = '<li>{{val}}</li>';
                     if(app.data[id]) {
-                        //alert(key+' '+)
                         self.render(key,id)
                     } else {
                         app.data[id] = [];
@@ -197,7 +196,7 @@ $pax.prototype = {
         var self = this;
         var app = this.apps[key];
         
-        if(!id) return this.initApp(key);
+        if(!id) return this.renderApp(key);
         if(!app.temp[id]) return app.data[id];
        
         var tag = app.tag[id];
