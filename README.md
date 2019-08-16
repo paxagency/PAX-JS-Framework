@@ -1,2 +1,7 @@
 # PAX-JS-Framework
- Get ready for it
+Minimally Efficient Javascript Framework + Router * BETA
+
+http://docs.paxagency.com/js/
+
+
+

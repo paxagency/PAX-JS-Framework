@@ -1,10 +1,26 @@
 {
-    "name": "PAX-JS-Framework",
-    "version": "0.0.01",
-    "homepage": "http://docs.paxagency.com/js",
-    "license": "MIT",
-    "author": "Albert Kiteck <albert@paxagency.com>",
-    "description": "Minimal & Ligthweight JS Framework",
-    "style":"dist/pax.js"
+  "name": "pax-js-framework",
+  "version": "0.0.121",
+  "homepage": "http://docs.paxagency.com/js",
+  "license": "MIT",
+  "author": "Albert Kiteck <albert@paxagency.com>",
+  "description": "Pax JS Framework: Minimal & Ligthweight JS Framework",
+  "main": "dist/pax.js",
+  "dependencies":{
+    "jquery":"^3.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paxagency/PAX-JS-Framework.git"
+  },
+  "keywords": [
+    "javascript",
+    "framework"
+  ],
+  "bugs": {
+    "url": "https://github.com/paxagency/PAX-JS-Framework/issues"
+  }
 }
-

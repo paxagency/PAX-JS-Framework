@@ -47,6 +47,10 @@ $pax.prototype = {
         return o;
     },
     loadApps:function(array,fun){
+        if(!array || !array.length) {
+            if(fun) fun();
+            return;
+        }
         var self = this;
         this.appTotal = array.length;
         this.appIndex = 0;
@@ -58,8 +62,8 @@ $pax.prototype = {
     loadRequests:function(key,fun){
         var self = this;
         var app = this.apps[key];
-        if(app.preload) {
-            var total = Object.keys(app.preload).length;
+        var total = (app.preload) ? Object.keys(app.preload).length : 0;
+        if(total) {
             var index = 0;
             $.each(app.preload,function(k,o){
                 if(o.url) {
@@ -194,10 +198,14 @@ $pax.prototype = {
         return this.tempString(s,key);
     },
     render:function(key,id){
+        if(!this.apps[key]) {
+            alert('App "'+key+'" does not exist');
+            return;
+        }
+        if(!id) return this.loadApps([key]);
+
         var self = this;
         var app = this.apps[key];
-        
-        if(!id) return this.initApp(key);
         if(!app.temp[id]) return app.data[id];
        
         var tag = app.tag[id];
@@ -210,7 +218,6 @@ $pax.prototype = {
                 s = s.split("{{i}}").join(n);
                 s = s.split("{{val}}").join(li);
                 s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
-                
                 s = self.tempString(s,key);
                 h+=s;
             });
@@ -354,15 +361,16 @@ $pax.prototype = {
     },
     link:function(path){
         window.history.pushState(path, path, path);
-        this.routing(path);
+        this.setPath(path);
     },
     router:function(){
+       
         var self = this;
         if(this.routeHash) {
-            this.setPath(0,0);
+            this.setPath(0,1);
             window.addEventListener('hashchange', function(){self.setPath()});
         } else {
-            this.setPath(0,0);
+            this.setPath(0,1);
             window.onpopstate = function(e){self.setPath(e.state)};
         }
     },
@@ -372,18 +380,23 @@ $pax.prototype = {
         } else {
             this._url = (path) ? path.substr(1).split('/') : window.location.pathname.substr(1).split('/');
         }
+        
         if(!noRoute) this.routing();
     },
     routing:function (){
+     
         var route='/error';
         var _path= '';
         for (var i=0, total=this._url.length; i < total; i++) {
             _path+=(i) ? '/'+this._url[i] : this._url[i];
             if(this.routes['/'+_path]) route = '/'+_path;
         }
+   
         if(this.routes[route]){
+            if(this.routeInit) this.routeInit();
             var key = this.routes[route];
             this.loadApps([key]);
+            if(this.routeReady) this.routeReady();
         }
     },
      parse:function(text){
@@ -1098,7 +1111,7 @@ $search.prototype =
         this.sort = sort;
         this.page=0;
         this.search();
-    },
+    }
 }
     
     
