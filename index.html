@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="dist/pax.js"></script>
+    </head>
+    <body>
+        <div id='el'></div>
+        <div id='routes'></div>
+    </body>
+
+ <script>
+    var pax = new $pax();
+    var app = pax.apps;
+    $(function(){
+        pax.init();
+    });
+   
+    pax.routeHash=1;
+    app.shared = {
+        root:"#el",
+        template:"<h1>Hello World</h1><p><button onclick='pax.link(\"index.html#/test\")'>Page 1</button> <button onclick='pax.link(\"index.html#/test2\")'>Page 2</button></p>",
+        ready:function(){
+            alert('Navigation is Ready!');
+        }
+    }
+    //index.html#/test
+    app.page = {
+        url:"/test",
+        template:"<h1>PAGE</h1>",
+        ready:function(){
+           
+        }
+    }
+    //index.html#/test
+    app.page2 = {
+        url:"/test2",
+        template:"<h1>PAGE2</h1>",
+        ready:function(){
+          
+        }
+    }
+ </script> 
+
+</html>
