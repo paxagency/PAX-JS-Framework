@@ -104,20 +104,21 @@ $pax.prototype = {
         this.renderChildren(key);
     },
     renderChildren:function(key){
+       
         var self = this;
         var app = this.apps[key];
+        
         $(app.root).find("[pax]").each(function(i,o){
             var tag = $(o).prop("tagName");
             var id = $(o).attr('pax');
             app.el[id] = $(o);
-
             if(tag=='SELECT' && $(o).attr('multiple')) tag='MULTIPLE';
             if(tag=='INPUT' && $(o).attr('type')=='checkbox') tag='CHECKBOX';
             if(tag=='INPUT' && $(o).attr('type')=='radio') tag='RADIO';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
             app.tag[id] = tag;
-          
+            var html = $(o).html();
             switch(tag){
                 case 'UL':case 'OL':
                     if(!app.temp[id]) app.temp[id] = '<li>{{val}}</li>';
@@ -174,7 +175,10 @@ $pax.prototype = {
                     $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})*/
                 break;
                 default:
-                    if(app.temp[id])  self.render(key,id);
+                    
+                    //if(app.temp[id])  
+                    ///app.temp[id] = " ";
+                    self.render(key,id);
                     //(app.data[id]) ? self.render(key,id) : app.data[id] = $(o).html();
             }
         });
@@ -198,6 +202,7 @@ $pax.prototype = {
         return this.tempString(s,key);
     },
     render:function(key,id){
+       
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
@@ -206,38 +211,53 @@ $pax.prototype = {
 
         var self = this;
         var app = this.apps[key];
-        if(!app.temp[id]) return app.data[id];
+        
+        //if(!app.temp[id]) return app.data[id];
        
+
         var tag = app.tag[id];
         var val = app.data[id];
         var h = '';
         
+        if(!val) return;
+        
         if(Array.isArray(val)){
-            $.each(app.data[id],function(n,li){
-                var s = app.temp[id].valueOf().toString();
-                s = s.split("{{i}}").join(n);
-                s = s.split("{{val}}").join(li);
-                s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
-                s = self.tempString(s,key);
-                h+=s;
-            });
+            if(!app.temp[id]) {
+                h=JSON.stringify(val);
+            } else {
+                $.each(app.data[id],function(n,li){
+                    var s = app.temp[id].valueOf().toString();
+                    s = s.split("{{i}}").join(n);
+                    s = s.split("{{val}}").join(li);
+                    s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
+                    s = self.tempString(s,key);
+                    h+=s;
+                });
+            }
         } else if(typeof val === 'object') {
-            $.each(app.data[id],function(n,li){
-                var s = app.temp[id].valueOf().toString();
-                s = s.split("{{i}}").join(n);
-                s = s.split("{{val}}").join(li);
-                s = s.split("{{this").join('{{'+key+'.data.'+id+'["'+n+'"]');
-                s = self.tempString(s,key);
-                h+=s;
-            });
+            if(!app.temp[id]) {
+                h=JSON.stringify(val);
+            } else {
+                $.each(app.data[id],function(n,li){
+                    var s = app.temp[id].valueOf().toString();
+                    s = s.split("{{i}}").join(n);
+                    s = s.split("{{val}}").join(li);
+                    s = s.split("{{this").join('{{'+key+'.data.'+id+'["'+n+'"]');
+                    s = self.tempString(s,key);
+                    h+=s;
+                });
+            }
         } else {
             var str = app.data[id];
+            
             if(app.temp[id]) {
                 var s = app.temp[id].valueOf().toString();
                 //s = s.split("this").join(key+'.data.'+id);
-                s = s.split("{{this").join('{{'+key+'.data');
+                s = s.split("{{val").join('{{'+key+'.data.'+id);
                 s = self.tempString(s,key);
                 h+=s;
+            } else {
+                h=str;
             }
         }
         
@@ -356,6 +376,9 @@ $pax.prototype = {
   	    if(!o) return alert(JSON.stringify(this.data, null, 2));
         alert(JSON.stringify(o, null, 2));
     },
+    log:function(s){
+        window.console.log(s);
+    },
     href:function(u){
         window.location.href = u;
     },
@@ -384,14 +407,15 @@ $pax.prototype = {
         if(!noRoute) this.routing();
     },
     routing:function (){
-     
+        
         var route='/error';
         var _path= '';
+        
         for (var i=0, total=this._url.length; i < total; i++) {
             _path+=(i) ? '/'+this._url[i] : this._url[i];
             if(this.routes['/'+_path]) route = '/'+_path;
         }
-   
+      
         if(this.routes[route]){
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
@@ -532,6 +556,7 @@ $pax.prototype = {
         }
     }
 };
+
 $pax.prototype.rend = 
 {
     mode:1,
