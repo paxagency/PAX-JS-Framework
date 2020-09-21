@@ -1,7 +1,8 @@
 var $pax = function(o) {};
 $pax.prototype = {
-    _url:[],
+    url:[],
     routes:{},
+    routeTags:{},
     routeHash:0,
     apps:{},
     appLength:0,
@@ -12,13 +13,31 @@ $pax.prototype = {
     },
     init:function(o){
         var self = this;
-        this.router();
         this.appGlob = [];
         this.appInit = [];
+        
+        $('template').each(function(){
+            var key = $(this).attr('pax');
+            var url = $(this).attr('pax-url');
+            var h = $(this).html();
+            if(typeof key !== 'undefined') {
+                if(self.apps[key]){
+                    if(!self.apps[key].template) self.apps[key].template = h
+                } 
+            } else if(typeof url !== 'undefined') {
+                var ur = url.split('-').join('/');
+                self.apps[url] = {
+                    url:'/'+ur,
+                    template:h
+                }
+            }
+        });
+        this.setRouter();
         
         $.each(this.apps,function(k,o){
             self.setDefaults(o);
             if(o.url) {
+                //add to routes array
                 self.routes[o.url] = k;
                 o.root = self.el.routes;
             } else {
@@ -28,8 +47,10 @@ $pax.prototype = {
                     self.appInit.push(k);
                 } 
             }
-        });  
+        }); 
+        //first load gobal apps
         this.loadApps(self.appGlob,function(){
+            //load remainder apps if not ignored
             self.loadApps(self.appInit,function(){
                 self.routing();
             });
@@ -40,9 +61,8 @@ $pax.prototype = {
         o.el = (o.el) ? o.el : {};
         o.tag = (o.tag) ? o.tag : {};
         o.data = (o.data) ? o.data : {};
-        o.vals = (o.vals) ? o.vals : {};
         o.str = (o.str) ? o.str : {};
-        o.temp = (o.temp) ? o.temp : {};
+        o.templates = (o.templates) ? o.templates : {};
         o.change = (o.change) ? o.change : {};
         return o;
     },
@@ -62,15 +82,16 @@ $pax.prototype = {
     loadRequests:function(key,fun){
         var self = this;
         var app = this.apps[key];
-        var total = (app.preload) ? Object.keys(app.preload).length : 0;
+        var total = (app.load) ? Object.keys(app.load).length : 0;
         if(total) {
             var index = 0;
-            $.each(app.preload,function(k,o){
+            $.each(app.load,function(k,o){
                 if(o.url) {
                     var query = (o.query) ? o.query : 0;
                     self.ajax(o.url,query,function(e){
-                        app.preload[k].data = e;
-                        if(app.preload[k].call) app[app.preload[k].call](e);
+                        app.load[k].data = e;
+                        //if(app.load[k].call) app[app.load[k].call](e);
+                        if(app.load[k].call) self.call(e,app.load[k].call);
                         index++;
                         self.finished(key,fun,total,index);
                     });
@@ -83,10 +104,19 @@ $pax.prototype = {
             self.finished(key,fun);
         }
     },
+    call:function(v,f){
+        var exp = f.split('.');
+        var obj= window['app'];
+        $.each(exp,function(i,k){
+            obj = obj[k];
+        });
+        return (v) ? obj(v) : obj(0);
+    },
     finished:function(key,fun,total,index){
         if(!total || total==index) {
             this.appIndex++;
             var app = this.apps[key];
+            if(!app.root && $(['pax="'+key+'"']).length) app.root = '[pax="'+key+'"]';
             if(app.prerend) app.prerend();
             if(app.root) this.renderApp(key);
             if(app.ready) app.ready();
@@ -98,13 +128,13 @@ $pax.prototype = {
     renderApp:function(key){
         var self = this;
         var app = this.apps[key];
-        //this.setVisible(key);
+        //alert(key);
+        app.set = function(id,val){pax.set(key,id,val);}
         if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
         this.renderChildren(key);
     },
     renderChildren:function(key){
-       
         var self = this;
         var app = this.apps[key];
         
@@ -112,19 +142,20 @@ $pax.prototype = {
             var tag = $(o).prop("tagName");
             var id = $(o).attr('pax');
             app.el[id] = $(o);
-            if(tag=='SELECT' && $(o).attr('multiple')) tag='MULTIPLE';
+            if(tag=='template') return false;
+            if(tag=='SELECT' && $(o)[0].hasAttribute('multiple')) tag='MULTIPLE';
             if(tag=='INPUT' && $(o).attr('type')=='checkbox') tag='CHECKBOX';
             if(tag=='INPUT' && $(o).attr('type')=='radio') tag='RADIO';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
+            
             app.tag[id] = tag;
             var html = $(o).html();
             switch(tag){
                 case 'UL':case 'OL':
-                    if(!app.temp[id]) app.temp[id] = '<li>{{val}}</li>';
+                    if(!app.templates[id]) app.templates[id] = '<li>{{val}}</li>';
                     if(app.data[id]) {
-                        //alert(key+' '+)
-                        self.render(key,id)
+                        self.render(key,id);
                     } else {
                         app.data[id] = [];
                         $(o).find('li').each(function(n,li){app.data[id].push($(li).html())})
@@ -146,40 +177,51 @@ $pax.prototype = {
                     $(app.el[id]).on('focusout',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'SELECT':
-                    if(!app.temp[id]) app.temp[id] = "<option value='{{this.value}}'>{{this.text}}</li>";
+                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</li>";
                     if(app.data[id]) {
-                        $(app.el[id]).html(self.rend.temp(app.temp[id],app.data[id]));
-                        if(app.vals[id]) $(app.el[id]).val(app.vals[id]);
+                        $(app.el[id]).html(self.rend.temp(app.templates[id],app.data[id].frame));
+                        if(app.data[id].value) $(app.el[id]).val(app.data[id].value.id);
                     } else {
-                        app.data[id] = [];
+                        app.data[id] = {};
+                        app.data[id].frame = [];
                         $(app.el[id]).find('option').each(function(n,li){
-                            app.data[id].push({value:$(li).val(),text:$(li).html()});
+                            app.data[id].frame.push({id:$(li).val(),text:$(li).html()});
                         });
                     }
                     $(app.el[id]).on('change',{self:self},function(e){
-                        //e.data.self.setData(key,id)
-                        app.vals[id] = $(this).val();
-                    })
+                        app.data[id].value = {id:$(this).val(),text:$(this).find('option[value="'+$(this).val()+'"]').html()};
+                    });
                 break;
                 case 'TABLE':
-                    var opt = (app.temp[id]) ? app.temp[id] : 0;
+                    var opt = (app.templates[id]) ? app.templates[id] : 0;
                     $(app.el[id]).html(self.table(app.data[id],opt));
                 break;case 'MULTIPLE':
-                    /*(app.data[id] || app.data[id]==0) ? $(o).val(app.data[id]) : app.data[id] = $(o).val();
+                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</li>";
                     if(app.data[id]) {
-                        self.render(key,id);
+                        $(app.el[id]).html(self.rend.temp(app.templates[id],app.data[id].frame));
+                        var ids = [];
+                        $.each(app.data[id].value,function(q,obje){
+                            ids.push(obje.id);
+                        });
+                        if(ids.length) $(app.el[id]).val(ids);
                     } else {
-                        app.data[id] = [];
-                        $(o).find('li').each(function(n,li){app.data[id].push($(li).html())})
+                        app.data[id] = {};
+                        app.data[id].frame = [];
+                        $(app.el[id]).find('option').each(function(n,li){
+                            app.data[id].frame.push({id:$(li).val(),text:$(li).html()});
+                        });
                     }
-                    $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})*/
+                    $(app.el[id]).on('change',{self:self},function(e){
+                        app.data[id].value =  [];
+                        var vals = $(this).val();
+                        var el = this;
+                        $.each(vals,function(q,obje){
+                            app.data[id].value.push({id:obje,text:$(el).find('option[value="'+obje+'"]').html()})
+                        });
+                    });
                 break;
                 default:
-                    
-                    //if(app.temp[id])  
-                    ///app.temp[id] = " ";
-                    self.render(key,id);
-                    //(app.data[id]) ? self.render(key,id) : app.data[id] = $(o).html();
+                    (app.data[id]) ? self.render(key,id) : app.data[id] = self.numString($(o).html());
             }
         });
     },
@@ -202,19 +244,15 @@ $pax.prototype = {
         return this.tempString(s,key);
     },
     render:function(key,id){
-       
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
         }
         if(!id) return this.loadApps([key]);
-
         var self = this;
         var app = this.apps[key];
-        
         //if(!app.temp[id]) return app.data[id];
        
-
         var tag = app.tag[id];
         var val = app.data[id];
         var h = '';
@@ -222,11 +260,11 @@ $pax.prototype = {
         if(!val) return;
         
         if(Array.isArray(val)){
-            if(!app.temp[id]) {
+            if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
                 $.each(app.data[id],function(n,li){
-                    var s = app.temp[id].valueOf().toString();
+                    var s = app.templates[id].valueOf().toString();
                     s = s.split("{{i}}").join(n);
                     s = s.split("{{val}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
@@ -235,11 +273,11 @@ $pax.prototype = {
                 });
             }
         } else if(typeof val === 'object') {
-            if(!app.temp[id]) {
+            if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
                 $.each(app.data[id],function(n,li){
-                    var s = app.temp[id].valueOf().toString();
+                    var s = app.templates[id].valueOf().toString();
                     s = s.split("{{i}}").join(n);
                     s = s.split("{{val}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'["'+n+'"]');
@@ -249,9 +287,8 @@ $pax.prototype = {
             }
         } else {
             var str = app.data[id];
-            
-            if(app.temp[id]) {
-                var s = app.temp[id].valueOf().toString();
+            if(app.templates[id]) {
+                var s = app.templates[id].valueOf().toString();
                 //s = s.split("this").join(key+'.data.'+id);
                 s = s.split("{{val").join('{{'+key+'.data.'+id);
                 s = self.tempString(s,key);
@@ -294,7 +331,7 @@ $pax.prototype = {
             break; default:
                 app.data[id] = $(el).val();
         }
-        if(app.change[id]) app.change[id](app.data[id]);
+        if(app.change[id]) app.change[id](app.data[id],id,key);
     },
 	numString:function(s){
 		//if(s=='') return null;
@@ -330,13 +367,12 @@ $pax.prototype = {
           if(app.change[id]) app.change[id](app.data[id]);
     },
     set:function(key,id,val){
-        if(!val) val=null;
+        if(val=='') val=null;
         var app = this.apps[key];
         app.data[id] = val;
-        //this.render(key,id);
-        if(app.temp[id]) {
+        if(app.templates[id]) {
             this.render(key,id);
-            if(app.change[id]) app.change[id](app.data[id]);
+            if(app.change[id]) app.change[id](val,id,key);
         } else {
             this.setHTML(key,id);
         }
@@ -386,45 +422,49 @@ $pax.prototype = {
         window.history.pushState(path, path, path);
         this.setPath(path);
     },
-    router:function(){
-       
+    setRouter:function(){
         var self = this;
         if(this.routeHash) {
-            this.setPath(0,1);
             window.addEventListener('hashchange', function(){self.setPath()});
         } else {
-            this.setPath(0,1);
             window.onpopstate = function(e){self.setPath(e.state)};
         }
+     
+        this.setPath(0,1);
     },
     setPath:function(path,noRoute){
         if(this.routeHash) {
-            this._url = location.hash.substr(2).split('/');
+            this.url = location.hash.substr(2).split('/');
         } else {
-            this._url = (path) ? path.substr(1).split('/') : window.location.pathname.substr(1).split('/');
+            this.url = (path) ? path.substr(1).split('/') : window.location.pathname.substr(1).split('/');
         }
-        
         if(!noRoute) this.routing();
     },
     routing:function (){
-        
         var route='/error';
+        var route2=0;
         var _path= '';
+        var _path2= '';
         
-        for (var i=0, total=this._url.length; i < total; i++) {
-            _path+=(i) ? '/'+this._url[i] : this._url[i];
+        for (var i=0, total=this.url.length; i < total; i++) {
+            _path+=(i) ? '/'+this.url[i] : this.url[i];
+            _path2+=(i) ? "-"+this.url[i] : this.url[i];
             if(this.routes['/'+_path]) route = '/'+_path;
+            if(this.routeTags[_path2]) route2 = _path2;
         }
-      
+        
         if(this.routes[route]){
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
             this.loadApps([key]);
             if(this.routeReady) this.routeReady();
-        }
+            $.each(this.apps,function(k,o){
+                if(o.appReady) o.appReady();
+            });
+        } 
     },
      parse:function(text){
-        if (typeof text!=="string")return false;
+        if (typeof text!=="string")return text;
         try{
             var j = JSON.parse(text);
             return j;
@@ -454,18 +494,7 @@ $pax.prototype = {
             });
         }
     },
-    vis:function(el,key,id,val,eq){
-        val = (val) ? val : 1;
-        eq = (eq) ? eq : '==';
-        if(el[0].match(/[a-z]/i)) el = this.apps[key].el[el];
-        (this.apps[key].data[id]==val) ? $(el).show() : $(el).hide();
-    },
-    setVisible:function(key){
-        if(!this.visible[key]) return;
-        $.each(this.visible[key],function(k,o){
-            (this.apps[key].data[k]==o.val) ? $(o.el).show() : $(o.el).hide();
-        })
-    },
+    
     _get:function(str,obj){
         if(!str) return '';
         obj = (obj) ? obj : window;
@@ -488,7 +517,6 @@ $pax.prototype = {
         }
     },
     clone:function(obj){
-        //return Object.assign({}, obj);
         return JSON.parse(JSON.stringify(obj));
     },
     table:function(obj,vars,opt) {
@@ -515,8 +543,6 @@ $pax.prototype = {
             $.each(obj,function(i,o) {
                 if(self.mode) o._source._id =  o._id;
                 o = (self.mode) ? o._source : o; 
-                
-                
                 var id = (o._id) ? "data-id='"+o._id+"'" : "";
                 var attr = '';
                 if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
