@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="../dist/pax.js"></script>
+    </head>
+    <body>
+        <div pax='home'></div>
+    </body>
+
+ <script>
+    var pax = new $pax();
+    app = pax.apps;
+    $(function(){pax.init();});
+
+    app.home = {
+        load:{
+            question:{url:"https://yesno.wtf/api"},
+        },
+        template:`
+            <h1>Ajax load test </h1>
+            <p><em>(reload for a new answer)</em></p><hr />
+            <h2>The answer is {{this.answer}}.<br /> <img src='{{this.image}}' /></h2>`,
+        prerend:function(){
+            this.data.answer = this.load.question.data.answer;
+            this.data.image = this.load.question.data.image;
+        }
+    }
+ </script> 
+
+</html>

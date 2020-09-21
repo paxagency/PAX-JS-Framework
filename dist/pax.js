@@ -7,15 +7,11 @@ $pax.prototype = {
     apps:{},
     appLength:0,
     appIndex:0,
-    visible:{},
-    el:{
-        routes:'#routes',
-    },
+    el:{routes:'#routes'},
     init:function(o){
         var self = this;
         this.appGlob = [];
         this.appInit = [];
-        
         $('template').each(function(){
             var key = $(this).attr('pax');
             var url = $(this).attr('pax-url');
@@ -128,10 +124,15 @@ $pax.prototype = {
     renderApp:function(key){
         var self = this;
         var app = this.apps[key];
-        //alert(key);
         app.set = function(id,val){pax.set(key,id,val);}
-        if(app.template) $(app.root).html(self.rendTemplate(key)); 
-        if(!app.template) app.template = $(app.root).html();
+        app.push = function(id,val){pax.push(key,id,val);}
+        
+        //if(app.template) $(app.root).html(self.rendTemplate(key)); 
+        if(!app.template) {
+            app.template = $(app.root).html();
+           
+        }
+        $(app.root).html(self.rendTemplate(key)); 
         this.renderChildren(key);
     },
     renderChildren:function(key){
@@ -393,10 +394,16 @@ $pax.prototype = {
         	obj = obj[o];
         });
     },
-    push:function(id,val){
-        if(!val) return;
-        this.data[id].push(val);
-        this.setHTML(id);
+    push:function(key,id,val){
+        if(val=='') val=null;
+        var app = this.apps[key];
+        app.data[id].push(val);
+        if(app.templates[id]) {
+            this.render(key,id);
+            if(app.change[id]) app.change[id](val,id,key);
+        } else {
+            this.setHTML(key,id);
+        }
     },
     remove:function(id,index){
         this.data[id].splice(index, 1);
@@ -494,7 +501,6 @@ $pax.prototype = {
             });
         }
     },
-    
     _get:function(str,obj){
         if(!str) return '';
         obj = (obj) ? obj : window;
@@ -582,6 +588,7 @@ $pax.prototype = {
         }
     }
 };
+
 $pax.prototype.rend = //var $render = function(type) {};
 {
     fileServer:"",
