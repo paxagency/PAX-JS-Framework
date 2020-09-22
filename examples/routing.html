@@ -9,7 +9,12 @@
     </head>
     <body>
         <div id='el'></div>
-        <div id='routes'></div>
+        <div id='routes'>
+            <template pax-url='page3'>
+                <h1>PAGE 3</h1>
+                <p> Lorem ipsum consectetur adipiscing elit, ut labore et dolore magna aliqu </p>
+            </template>
+        </div>
     </body>
 
  <script>
@@ -22,23 +27,23 @@
     pax.routeHash=1;
     app.shared = {
         root:"#el",
-        template:"<h1>Hello World</h1><p><button onclick='pax.link(\"index.html#/test\")'>Page 1</button> <button onclick='pax.link(\"index.html#/test2\")'>Page 2</button></p>",
+        template:"<h1>Website</h1><p><button onclick='pax.link(\"routing.html#/page1\")'>Page 1</button> <button onclick='pax.link(\"routing.html#/page2\")'>Page 2</button> <button onclick='pax.link(\"routing.html#/page3\")'>Page 3</button></p>",
         ready:function(){
             alert('Navigation is Ready!');
         }
     }
-    //index.html#/test
-    app.page = {
-        url:"/test",
-        template:"<h1>PAGE</h1>",
+    //index.html#/page1
+    app.page1 = {
+        url:"/page1",
+        template:"<h1>PAGE 1</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, ut labore et dolore magna aliqua.</p>",
         ready:function(){
            
         }
     }
-    //index.html#/test
+    //index.html#/page2
     app.page2 = {
-        url:"/test2",
-        template:"<h1>PAGE2</h1>",
+        url:"/page2",
+        template:"<h1>PAGE 2</h1><p>Duis aute irure dolor in reprehenderit in voluptate velit esse</p>",
         ready:function(){
           
         }

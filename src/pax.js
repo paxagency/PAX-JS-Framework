@@ -128,10 +128,7 @@ $pax.prototype = {
         app.push = function(id,val){pax.push(key,id,val);}
         
         //if(app.template) $(app.root).html(self.rendTemplate(key)); 
-        if(!app.template) {
-            app.template = $(app.root).html();
-            $(app.root).html('');
-        }
+        if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
         this.renderChildren(key);
     },
