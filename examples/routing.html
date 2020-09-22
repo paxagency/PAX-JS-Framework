@@ -8,7 +8,7 @@
         <script src="../dist/pax.js"></script>
     </head>
     <body>
-        <div id='el'></div>
+        <div pax='shared'></div>
         <div id='routes'>
             <template pax-url='page3'>
                 <h1>PAGE 3</h1>
@@ -26,7 +26,6 @@
    
     pax.routeHash=1;
     app.shared = {
-        root:"#el",
         template:"<h1>Website</h1><p><button onclick='pax.link(\"routing.html#/page1\")'>Page 1</button> <button onclick='pax.link(\"routing.html#/page2\")'>Page 2</button> <button onclick='pax.link(\"routing.html#/page3\")'>Page 3</button></p>",
         ready:function(){
             alert('Navigation is Ready!');
