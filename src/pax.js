@@ -126,7 +126,7 @@ $pax.prototype = {
         var app = this.apps[key];
         app.set = function(id,val){pax.set(key,id,val);}
         app.push = function(id,val){pax.push(key,id,val);}
-        
+        app.pop = function(id,val){pax.pop(key,id,val);}
         //if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
@@ -151,7 +151,7 @@ $pax.prototype = {
             var html = $(o).html();
             switch(tag){
                 case 'UL':case 'OL':
-                    if(!app.templates[id]) app.templates[id] = '<li>{{val}}</li>';
+                    if(!app.templates[id]) app.templates[id] = '<li data-index="{{i}}">{{val}}</li>';
                     if(app.data[id]) {
                         self.render(key,id);
                     } else {
@@ -402,9 +402,15 @@ $pax.prototype = {
             this.setHTML(key,id);
         }
     },
-    remove:function(id,index){
-        this.data[id].splice(index, 1);
-        this.setHTML(id);
+    pop:function(key,id,index){
+        var app = this.apps[key];
+        (typeof index!=undefined) ? app.data[id].splice(index, 1) : app.data[id].pop();
+        if(app.templates[id]) {
+            this.render(key,id);
+            if(app.change[id]) app.change[id](val,id,key);
+        } else {
+            this.setHTML(key,id);
+        }
     },
     getVals:function(ids){
           var self = this;
@@ -423,6 +429,7 @@ $pax.prototype = {
         window.location.href = u;
     },
     link:function(path){
+      
         window.history.pushState(path, path, path);
         this.setPath(path);
     },

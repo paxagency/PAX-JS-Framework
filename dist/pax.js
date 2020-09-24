@@ -126,7 +126,7 @@ $pax.prototype = {
         var app = this.apps[key];
         app.set = function(id,val){pax.set(key,id,val);}
         app.push = function(id,val){pax.push(key,id,val);}
-        
+        app.pop = function(id,val){pax.pop(key,id,val);}
         //if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
@@ -151,7 +151,7 @@ $pax.prototype = {
             var html = $(o).html();
             switch(tag){
                 case 'UL':case 'OL':
-                    if(!app.templates[id]) app.templates[id] = '<li>{{val}}</li>';
+                    if(!app.templates[id]) app.templates[id] = '<li data-index="{{i}}">{{val}}</li>';
                     if(app.data[id]) {
                         self.render(key,id);
                     } else {
@@ -379,18 +379,6 @@ $pax.prototype = {
   	     var self = this;
   	     $.each(o,function(k,v){self.set(k,v);});
     },
-    setVar:function(id,key,val){
-        if(!val) return;
-        var a = key.split('.');
-        var c = a.length-1;
-        if(!this.va[id]) this.va[id] = {};
-        var obj = this.va[id];
-        $.each(a,function(n,o){
-        	if(!obj[o]) obj[o] = {};
-        	if(n==c) obj[o] = val;
-        	obj = obj[o];
-        });
-    },
     push:function(key,id,val){
         if(val=='') val=null;
         var app = this.apps[key];
@@ -402,9 +390,27 @@ $pax.prototype = {
             this.setHTML(key,id);
         }
     },
-    remove:function(id,index){
-        this.data[id].splice(index, 1);
-        this.setHTML(id);
+    pop:function(key,id,index){
+        var app = this.apps[key];
+        (typeof index!=undefined) ? app.data[id].splice(index, 1) : app.data[id].pop();
+        if(app.templates[id]) {
+            this.render(key,id);
+            if(app.change[id]) app.change[id](val,id,key);
+        } else {
+            this.setHTML(key,id);
+        }
+    },
+    setVar:function(id,key,val){
+        if(!val) return;
+        var a = key.split('.');
+        var c = a.length-1;
+        if(!this.va[id]) this.va[id] = {};
+        var obj = this.va[id];
+        $.each(a,function(n,o){
+        	if(!obj[o]) obj[o] = {};
+        	if(n==c) obj[o] = val;
+        	obj = obj[o];
+        });
     },
     getVals:function(ids){
           var self = this;
@@ -644,13 +650,7 @@ $pax.prototype.rend = //var $render = function(type) {};
         if(!opt) opt = {};
         if(obj.length==0)  return  "<tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody>";
         var h = "<thead><tr>";
-       
         if(!vars){
-            /*
-            $.each(obj,function(i,o) {
-                h+="<th>"+o.id+"</th>";
-            });*/
-          
             $.each(obj[0],function(k,o) {
                 h+="<th>"+k+"</th>";
             });
@@ -658,7 +658,6 @@ $pax.prototype.rend = //var $render = function(type) {};
             $.each(vars,function(k,v){
                 var click = (opt['thClick']) ? "onclick='"+opt['thClick']+"(this)'" : '';
                 if(v.thead){
-                    
                     h+="<th "+click+" data-id="+v.id+" data-index="+k+">"+v.thead+"</th>";
                 } else {
                     h+="<th "+click+" data-id="+v.id+" data-index="+k+">"+v.label+"</th>";
@@ -666,19 +665,12 @@ $pax.prototype.rend = //var $render = function(type) {};
                 }
             });
         }
-       
         h+="</tr></thead><tbody>";
         if(!vars){
-           
             $.each(obj,function(i,o) {
-                //if(self.mode) o._source._id =  o._id;
-                //o = (self.mode) ? o._source : o; 
-                
-              
                 var id = (o.id) ? "data-id='"+o.id+"'" : "";
                 var attr = '';
                 if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
-                
                 h+="<tr "+attr+" "+id+" data-index='"+i+"'>";
                 var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
                 $.each(o,function(i,v){
@@ -689,10 +681,7 @@ $pax.prototype.rend = //var $render = function(type) {};
           
             return h+"</tbody>";
         } else {
-           
             $.each(obj,function(i,o) {
-                //if(self.mode) o._source._id =  o._id;
-                //o = (self.mode) ? o._source : o; 
                 var attr = '';
                 if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
                 var id = (o.id) ? "data-id='"+o.id+"'" : "";
@@ -714,7 +703,6 @@ $pax.prototype.rend = //var $render = function(type) {};
                     }
                     
                     if(v.call) val = self.call(val,v.call);
-
                     h+= (val!=null) ? "<td "+click+" "+attr+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
                 });
                 h+="</tr>";
@@ -872,15 +860,8 @@ $pax.prototype.rend = //var $render = function(type) {};
         if(td.attr) $.each(td.attr,function(k,o){attr+=k+"='"+o+"' ";});
         if(td.required) attr+="vreq='1' ";
         if(!td.class || typeof td.class!='object') td.class = [];
-        
-        //td.class = (td.class && td.class[0]) ? td.class.push('input') : ['input'];
         td.class.push(td.id);
         td.class.push('input');
-       // if(td.type=='body' || td.type=='paragraph') td.class.push('redactor');
-        //pax.print(td.class);
-       
-        //pax.print(td.class);
-       
         cl='class="'+td.class.join(' ')+'"';
        
          if(val==null) val = '';
@@ -912,12 +893,8 @@ $pax.prototype.rend = //var $render = function(type) {};
                         });
                         return h+inputs+"</span>"+images+"</span><br /><input type='file' ></p>";
                     }
-                  
-                    
-                    //return "<input type='hidden' data-type='"+td.type+"' id='"+td.id+"' name='"+td.id+"' value=\""+val+"\"'></input><img src=\""+self.fileServer+val+"\" style='max-height:200px;'/>"
-                    //$.each(val,function(i,o){val[i]=self.fileServer+o});
                     return "<div id='"+td.id+"'></div><script> $('#"+td.id+"').zoomy(['"+val.join("','")+"'],{});</script>";
-               // return "<img  id='"+td.id+"'  src=\""+self.fileServer+val+"\" "+attr+" "+cl+" />";
+               
                case 'table':
                    return "<table class='list'>"+self.table(val)+"<table>";
             case 'password':
