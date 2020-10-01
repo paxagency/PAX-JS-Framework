@@ -124,7 +124,7 @@ $pax.prototype = {
     renderApp:function(key){
         var self = this;
         var app = this.apps[key];
-        app.set = function(id,val){pax.set(key,id,val);}
+        app.set = function(id,val,mode){pax.set(key,id,val,mode);}
         app.push = function(id,val){pax.push(key,id,val);}
         app.pop = function(id,val){pax.pop(key,id,val);}
         //if(app.template) $(app.root).html(self.rendTemplate(key)); 
@@ -143,10 +143,10 @@ $pax.prototype = {
             if(tag=='template') return false;
             if(tag=='SELECT' && $(o)[0].hasAttribute('multiple')) tag='MULTIPLE';
             if(tag=='INPUT' && $(o).attr('type')=='checkbox') tag='CHECKBOX';
-            if(tag=='INPUT' && $(o).attr('type')=='radio') tag='RADIO';
+            if(tag=='INPUT' && $(o).attr('type')=='radio') tag='IGNORE';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
-            
+            if($(o).attr('pax-type')) tag = $(o).attr('pax-type').toUpperCase();
             app.tag[id] = tag;
             var html = $(o).html();
             switch(tag){
@@ -159,11 +159,27 @@ $pax.prototype = {
                         $(o).find('li').each(function(n,li){app.data[id].push($(li).html())})
                     }
                 break;case 'RADIO':
-                    if(app.data[id] || app.data[id]==0) $(o).val([app.data[id]]);
-                    $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})
+                    if(!app.templates[id]) app.templates[id] = "<label><input type='radio' value='{{this.id}}' name='"+id+"'>{{this.text}}</label> ";
+                    if(app.data[id]) {
+                        $(app.el[id]).html(self.render(key,id));
+                    } else {
+                        app.data[id] = [];
+                        $(app.el[id]).find('input[name="'+id+'"]').each(function(n,li){
+                            app.data[id].push({id:$(li).val(),text:$(li).html()});
+                        });
+                    }
+                    if(app.values[id]) $(app.el[id]).find('input[name="'+id+'"][value="'+app.values[id].id+'"]').attr('checked', true);
+                    $(app.el[id]).find('input[name="'+id+'"]').on('change',{self:self},function(e){
+                        self.setData(key,id);
+                    });
                 break;
                 case 'CHECKBOX':
-                    (app.data[id]) ? $(o).prop("checked",true) : app.data[id]=0;
+                    if(app.data[id]) {
+                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' pax='"+id+"' />"+app.data[id].text+"</label>");
+                        if(app.data[id].id) $(o).prop("checked",true);
+                    } else {
+                         app.data[id]={id:0,text:$(this).parent().text()};
+                    }
                     $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'INPUT':
@@ -175,71 +191,46 @@ $pax.prototype = {
                     $(app.el[id]).on('focusout',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'SELECT':
-                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</li>";
+                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</option>";
                     if(app.data[id]) {
-                        $(app.el[id]).html(self.rend.temp(app.templates[id],app.data[id].frame));
-                        if(app.data[id].value) $(app.el[id]).val(app.data[id].value.id);
+                        $(app.el[id]).html(self.render(key,id));
                     } else {
-                        app.data[id] = {};
-                        app.data[id].frame = [];
+                        app.data[id] = [];
                         $(app.el[id]).find('option').each(function(n,li){
-                            app.data[id].frame.push({id:$(li).val(),text:$(li).html()});
+                            app.data[id].push({id:$(li).val(),text:$(li).html()});
                         });
                     }
+                    if(app.values[id]) $(app.el[id]).val(app.values[id].id);
                     $(app.el[id]).on('change',{self:self},function(e){
-                        app.data[id].value = {id:$(this).val(),text:$(this).find('option[value="'+$(this).val()+'"]').html()};
+                        self.setData(key,id);
                     });
                 break;
                 case 'TABLE':
                     var opt = (app.templates[id]) ? app.templates[id] : 0;
                     $(app.el[id]).html(self.table(app.data[id],opt));
                 break;case 'MULTIPLE':
-                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</li>";
+                    if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</option>";
                     if(app.data[id]) {
-                        $(app.el[id]).html(self.rend.temp(app.templates[id],app.data[id].frame));
-                        var ids = [];
-                        $.each(app.data[id].value,function(q,obje){
-                            ids.push(obje.id);
-                        });
-                        if(ids.length) $(app.el[id]).val(ids);
+                        $(app.el[id]).html(self.render(key,id));
                     } else {
-                        app.data[id] = {};
-                        app.data[id].frame = [];
+                        app.data[id] = [];
                         $(app.el[id]).find('option').each(function(n,li){
-                            app.data[id].frame.push({id:$(li).val(),text:$(li).html()});
+                            app.data[id].push({id:$(li).val(),text:$(li).html()});
                         });
                     }
+                    if(app.values[id]){
+                        var ids = [];
+                        $.each(app.values[id],function(q,obje){ids.push(obje.id);});
+                        if(ids.length) $(app.el[id]).val(ids);
+                    }
                     $(app.el[id]).on('change',{self:self},function(e){
-                        app.data[id].value =  [];
-                        var vals = $(this).val();
-                        var el = this;
-                        $.each(vals,function(q,obje){
-                            app.data[id].value.push({id:obje,text:$(el).find('option[value="'+obje+'"]').html()})
-                        });
+                        self.setData(key,id);
                     });
                 break;
                 default:
                     (app.data[id]) ? self.render(key,id) : app.data[id] = self.numString($(o).html());
             }
         });
-    },
-    tempValue:function(s,key){
-        var self = this;
-        s = s.replace('{{','').replace('}}','');
-        var v = eval("this.apps."+s);
-        return (typeof v != 'undefined') ? v : '';
-    },
-    tempString:function(s,key) {
-        var self = this;
-        return  s.replace(
-            /\{\{[^\}]*\}\}/g,
-            function (val, index) { return self.tempValue(val,key); });
-    },
-    rendTemplate:function(key){
-        var s = this.apps[key].template.valueOf().toString();
-        if(s.indexOf('{{') == -1) return s;
-        s = s.split("this.").join(key+'.data.');
-        return this.tempString(s,key);
     },
     render:function(key,id){
         if(!this.apps[key]) {
@@ -249,7 +240,6 @@ $pax.prototype = {
         if(!id) return this.loadApps([key]);
         var self = this;
         var app = this.apps[key];
-        //if(!app.temp[id]) return app.data[id];
        
         var tag = app.tag[id];
         var val = app.data[id];
@@ -295,10 +285,26 @@ $pax.prototype = {
                 h=str;
             }
         }
-        
         $(app.el[id]).html(h);
-        
         return h;
+    },
+    rendTemplate:function(key){
+        var s = this.apps[key].template.valueOf().toString();
+        if(s.indexOf('{{') == -1) return s;
+        s = s.split("this.").join(key+'.data.');
+        return this.tempString(s,key);
+    },
+    tempString:function(s,key) {
+        var self = this;
+        return  s.replace(
+            /\{\{[^\}]*\}\}/g,
+            function (val, index) { return self.tempValue(val,key); });
+    },
+    tempValue:function(s,key){
+        var self = this;
+        s = s.replace('{{','').replace('}}','');
+        var v = eval("this.apps."+s);
+        return (typeof v != 'undefined') ? v : '';
     },
     setData:function(key,id) {
         var self = this;
@@ -308,26 +314,26 @@ $pax.prototype = {
 
         switch(tag){
             case 'RADIO':
-                app.data[id] = self.numString($(el).val());
-                app.str[id] = $(el).find(':checked').parent().text();
+                app.values[id] = {id:$(el).find('input:checked'),text:$(el).find('input[value="'+$(el).val()+'"]').html()};
             break; case 'CHECKBOX':
-                app.data[id] = ($(el).prop('checked')) ? 1 : 0;
-                app.str[id] = $(el).parent().text();
+                var v = ($(el).prop('checked')) ? 1 : 0;
+                app.data[id]=app.values[id] ={id:v,text:$(el).parent().text()};
             break; case 'INPUT':
-                app.data[id] = self.numString($(el).val());
+                app.values[id] = app.data[id] = $(el).val();
             break; case 'TEXTAREA':
-                app.data[id] = self.numString($(el).val());
+                app.values[id] = app.data[id] = $(el).val();
             break; case 'SELECT':
-                app.data[id] = self.numString($(el).val());
-                app.str[id] = $(el).find(':selected').html();
+                app.values[id] = {id:$(el).val(),text:$(el).find(':selected').html()};
             break; case 'MULTIPLE':
-                app.data[id] = $(el).val();
-                app.str[id] = [];
-                $.each($(el).find('option:selected'),function(x,l){
-                    app.str[id].push($(this).html());
+                app.values[id] =  [];
+                var vals = $(el).val();
+                $.each(vals,function(q,obje){
+                    app.values[id].push(
+                        {id:obje,text:$(el).find('option[value="'+obje+'"]').html()}
+                    );
                 });
             break; default:
-                app.data[id] = $(el).val();
+                //app.data[id] = $(el).val();
         }
         if(app.change[id]) app.change[id](app.data[id],id,key);
     },
@@ -347,7 +353,7 @@ $pax.prototype = {
             case 'UL':
 				$(el).html(self.render(key,id));
 			break;case 'RADIO':
-			  	$(el).val([val]);
+                if(app.values[id]) $(el).find('input[name="'+id+'"][value="'+app.values[id].id+'"]').attr('checked', true);
 			break;case 'CHECKBOX':
 			  	(val) ? $(el).prop("checked",true) : $(el).prop("checked",false);
 			break;case 'INPUT':
@@ -355,22 +361,29 @@ $pax.prototype = {
 			break;case 'TEXTAREA':
 			  	$(el).val(val);
 			break;case 'SELECT':
-				app.str[id] = $(el).find('option[value="'+val+'"]').html();
-			 	$(el).find('option[value="'+val+'"]').prop("selected",true);
-			break;case 'MULTIPLE':
-			   	$(el).val(val);
+                if(app.values[id]) $(el).val(app.values[id].id);
+            break;case 'MULTIPLE':
+                if(app.values[id]){
+                    var ids = [];
+                    $.each(app.values[id],function(q,obje){ids.push(obje.id);});
+                    (ids.length) ? $(el).val(ids) : $(el).val('');
+                }
             break;default:
-			 	$(el).html(val);
+			 	//$(el).html(val);
           }
           if(app.change[id]) app.change[id](app.data[id]);
     },
-    set:function(key,id,val){
+    set:function(key,id,val,value){
         if(val=='') val=null;
         var app = this.apps[key];
-        app.data[id] = val;
-        if(app.templates[id]) {
+        //app.data[id] = val;
+        (value) ? this._set(id,val,app.values) : this._set(id,val,app.data);
+        if(id.indexOf('.')>-1) id = id.split('.')[0];
+        if(app.change[id]) app.change[id](val,id,key);
+        
+        if(app.templates[id] && !value) {
             this.render(key,id);
-            if(app.change[id]) app.change[id](val,id,key);
+            this.setHTML(key,id);
         } else {
             this.setHTML(key,id);
         }
@@ -378,27 +391,6 @@ $pax.prototype = {
     load:function(o){
   	     var self = this;
   	     $.each(o,function(k,v){self.set(k,v);});
-    },
-    push:function(key,id,val){
-        if(val=='') val=null;
-        var app = this.apps[key];
-        app.data[id].push(val);
-        if(app.templates[id]) {
-            this.render(key,id);
-            if(app.change[id]) app.change[id](val,id,key);
-        } else {
-            this.setHTML(key,id);
-        }
-    },
-    pop:function(key,id,index){
-        var app = this.apps[key];
-        (typeof index!=undefined) ? app.data[id].splice(index, 1) : app.data[id].pop();
-        if(app.templates[id]) {
-            this.render(key,id);
-            if(app.change[id]) app.change[id](val,id,key);
-        } else {
-            this.setHTML(key,id);
-        }
     },
     setVar:function(id,key,val){
         if(!val) return;
@@ -411,6 +403,27 @@ $pax.prototype = {
         	if(n==c) obj[o] = val;
         	obj = obj[o];
         });
+    },
+    push:function(key,id,val){
+        if(val=='') val=null;
+        var app = this.apps[key];
+        app.data[id].push(val);
+        if(app.change[id]) app.change[id](app.data[id],id,key);
+        if(app.templates[id]) {
+            this.render(key,id);
+        } else {
+            this.setHTML(key,id);
+        }
+    },
+    pop:function(key,id,index){
+        var app = this.apps[key];
+        (typeof index!=undefined) ? app.data[id].splice(index, 1) : app.data[id].pop();
+        if(app.change[id]) app.change[id](app.data[id],id,key);
+        if(app.templates[id]) {
+            this.render(key,id);
+        } else {
+            this.setHTML(key,id);
+        }
     },
     getVals:function(ids){
           var self = this;
@@ -592,6 +605,7 @@ $pax.prototype = {
         }
     }
 };
+
 
 $pax.prototype.rend = //var $render = function(type) {};
 {

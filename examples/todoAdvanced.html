@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="../dist/pax.js"></script>
+    </head>
+    <body>
+        <div pax='home'>
+            <h1 pax='title'></h1>
+            <ul pax='todos'></ul>
+            <h4 class='message' style='display:none;'>There are no items to do.</h4>
+            <input pax='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
+            <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
+        </div>
+    </body>
+
+ <script>
+    var pax = new $pax();
+    var app = pax.apps;
+    $(function(){pax.init();});
+
+    app.home = {
+        data:{
+            title:'My List',
+            todos: [
+                'Learn JavaScript',
+                'Learn Pax',
+                'Build something awesome'
+            ],
+            inp:''
+        },
+        templates:{
+            todos:`<li>{{val}} <button onclick='app.home.pop("todos",{{i}})'>x</button></li>`
+        },
+        add:function(){
+            this.push('todos',app.home.data.inp);
+            this.set('inp','');
+        },
+        change:{
+            todos:function(v){
+                (!v.length) ? $('.message').show() :$('.message').hide()  
+            }
+        }
+    }
+    
+    
+ </script> 
+
+</html>
