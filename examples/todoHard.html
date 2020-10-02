@@ -5,10 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../src/pax.js"></script>
-        <style>
-            .strike {text-decoration: line-through;}
-        </style>
+        <script src="../dist/pax.js"></script>
     </head>
     <body>
         <div pax='home'>
@@ -29,30 +26,18 @@
         data:{
             title:'My List',
             todos: [
-                {text:'Learn JavaScript',done:0},
-                {text:'Learn Pax',done:0},
-                {text:'Build something awesome',done:1}
+                'Learn JavaScript',
+                'Learn Pax',
+                'Build something awesome'
             ],
             inp:''
         },
         templates:{
-            todos:`<li data-index='{{i}}' class='{{this.done==1 ? 'strike' : ''}}'> 
-                <input type='checkbox'  
-                    onchange='app.home.updateTodos(this)' 
-                    {{this.done==1 ? 'checked' : ''}} />   
-                    {{this.text}} 
-                    <button onclick='app.home.pop("todos",{{i}})'>x</button>
-                    </li>`
+            todos:`<li>{{val}} <button onclick='app.home.pop("todos",{{i}})'>x</button></li>`
         },
         add:function(){
-            this.push('todos',{text:app.home.data.inp,done:0},0);
+            this.push('todos',app.home.data.inp);
             this.set('inp','');
-        },
-        updateTodos:function(t){
-            var i = $(t).parent().attr('data-index');
-            this.data.todos[i].done = ($(t).prop('checked')) ? 1 :0;
-            this.data.todos.sort(function(a, b) { return a.done - b.done;});
-            pax.render('home','todos');
         },
         change:{
             todos:function(v){

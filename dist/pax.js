@@ -57,6 +57,7 @@ $pax.prototype = {
         o.el = (o.el) ? o.el : {};
         o.tag = (o.tag) ? o.tag : {};
         o.data = (o.data) ? o.data : {};
+        o.values = (o.values) ? o.values : {};
         o.str = (o.str) ? o.str : {};
         o.templates = (o.templates) ? o.templates : {};
         o.change = (o.change) ? o.change : {};
@@ -125,7 +126,7 @@ $pax.prototype = {
         var self = this;
         var app = this.apps[key];
         app.set = function(id,val,mode){pax.set(key,id,val,mode);}
-        app.push = function(id,val){pax.push(key,id,val);}
+        app.push = function(id,val,index){pax.push(key,id,val,index);}
         app.pop = function(id,val){pax.pop(key,id,val);}
         //if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
@@ -404,10 +405,10 @@ $pax.prototype = {
         	obj = obj[o];
         });
     },
-    push:function(key,id,val){
+    push:function(key,id,val,index){
         if(val=='') val=null;
         var app = this.apps[key];
-        app.data[id].push(val);
+        (typeof index != undefined) ?  app.data[id].splice(index, 0, val) : app.data[id].push(val);
         if(app.change[id]) app.change[id](app.data[id],id,key);
         if(app.templates[id]) {
             this.render(key,id);
