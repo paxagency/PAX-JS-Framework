@@ -257,7 +257,7 @@ $pax.prototype = {
                     s = s.split("{{i}}").join(n);
                     s = s.split("{{val}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
-                    s = self.tempString(s,key);
+                    s = self.tempString(s,key,JSON.stringify(li),n);
                     h+=s;
                 });
             }
@@ -270,7 +270,7 @@ $pax.prototype = {
                     s = s.split("{{i}}").join(n);
                     s = s.split("{{val}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'["'+n+'"]');
-                    s = self.tempString(s,key);
+                    s = self.tempString(s,key,JSON.stringify(li),n);
                     h+=s;
                 });
             }
@@ -280,7 +280,7 @@ $pax.prototype = {
                 var s = app.templates[id].valueOf().toString();
                 //s = s.split("this").join(key+'.data.'+id);
                 s = s.split("{{val").join('{{'+key+'.data.'+id);
-                s = self.tempString(s,key);
+                s = self.tempString(s,key,JSON.stringify(app.data[id]));
                 h+=s;
             } else {
                 h=str;
@@ -295,15 +295,17 @@ $pax.prototype = {
         s = s.split("this.").join(key+'.data.');
         return this.tempString(s,key);
     },
-    tempString:function(s,key) {
+    tempString:function(s,key,obj,n) {
         var self = this;
         return  s.replace(
             /\{\{[^\}]*\}\}/g,
-            function (val, index) { return self.tempValue(val,key); });
+            function (val, index) { return self.tempValue(val,key,obj,n); });
     },
-    tempValue:function(s,key){
+    tempValue:function(s,key,obj,n){
         var self = this;
         s = s.replace('{{','').replace('}}','');
+        if(typeof n!='undefined') n = n.toString()+',';
+        if(obj && s.indexOf(')')>=0) s = s.replace(')',n+obj+')');
         var v = eval("this.apps."+s);
         return (typeof v != 'undefined') ? v : '';
     },
