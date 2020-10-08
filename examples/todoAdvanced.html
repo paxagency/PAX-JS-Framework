@@ -39,7 +39,7 @@
             todos:`<li data-index='{{index}}' class='{{home.getClass()}}'> 
                 <label><input type='checkbox'  
                     onchange='app.home.updateTodos(this)' 
-                    {{home.getCheck()}} />   
+                    {{home.getCheck}} />   
                     {{this.text}} 
                     <button onclick='app.home.pop("todos",{{index}})'>x</button>
                     </label></li>`
