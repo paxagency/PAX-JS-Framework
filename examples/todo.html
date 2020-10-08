@@ -33,7 +33,7 @@
             inp:''
         },
         templates:{
-            todos:`<li>{{val}} <button onclick='app.home.pop("todos",{{i}})'>x</button></li>`
+            todos:`<li>{{value}} <button onclick='app.home.pop("todos",{{index}})'>x</button></li>`
         },
         add:function(){
             this.push('todos',app.home.data.inp);

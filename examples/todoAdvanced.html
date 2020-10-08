@@ -36,12 +36,12 @@
             inp:''
         },
         templates:{
-            todos:`<li data-index='{{i}}' class='{{home.getClass()}}'> 
+            todos:`<li data-index='{{index}}' class='{{home.getClass()}}'> 
                 <label><input type='checkbox'  
                     onchange='app.home.updateTodos(this)' 
                     {{home.getCheck()}} />   
                     {{this.text}} 
-                    <button onclick='app.home.pop("todos",{{i}})'>x</button>
+                    <button onclick='app.home.pop("todos",{{index}})'>x</button>
                     </label></li>`
         },
         add:function(){

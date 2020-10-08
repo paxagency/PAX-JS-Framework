@@ -140,6 +140,7 @@ $pax.prototype = {
         $(app.root).find("[pax]").each(function(i,o){
             var tag = $(o).prop("tagName");
             var id = $(o).attr('pax');
+            
             app.el[id] = $(o);
             if(tag=='template') return false;
             if(tag=='SELECT' && $(o)[0].hasAttribute('multiple')) tag='MULTIPLE';
@@ -152,7 +153,7 @@ $pax.prototype = {
             var html = $(o).html();
             switch(tag){
                 case 'UL':case 'OL':
-                    if(!app.templates[id]) app.templates[id] = '<li data-index="{{i}}">{{val}}</li>';
+                    if(!app.templates[id]) app.templates[id] = '<li data-index="{{index}}">{{value}}</li>';
                     if(app.data[id]) {
                         self.render(key,id);
                     } else {
@@ -229,11 +230,13 @@ $pax.prototype = {
                     });
                 break;
                 default:
-                    (app.data[id]) ? self.render(key,id) : app.data[id] = self.numString($(o).html());
+                   
+                    (app.data[id] || app.templates[id]) ? self.render(key,id) : app.data[id] = self.numString($(o).html());
             }
         });
     },
     render:function(key,id){
+        
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
@@ -245,41 +248,40 @@ $pax.prototype = {
         var tag = app.tag[id];
         var val = app.data[id];
         var h = '';
-        
-        if(!val) return;
+       
+        if(!val) val = '';
         
         if(Array.isArray(val)){
+            
             if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
                 $.each(app.data[id],function(n,li){
                     var s = app.templates[id].valueOf().toString();
-                    s = s.split("{{i}}").join(n);
-                    s = s.split("{{val}}").join(li);
+                    s = s.split("{{index}}").join(n);
+                    s = s.split("{{value}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
                     s = self.tempString(s,key,JSON.stringify(li),n);
                     h+=s;
                 });
             }
         } else if(typeof val === 'object') {
+            
             if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
-                $.each(app.data[id],function(n,li){
-                    var s = app.templates[id].valueOf().toString();
-                    s = s.split("{{i}}").join(n);
-                    s = s.split("{{val}}").join(li);
-                    s = s.split("{{this").join('{{'+key+'.data.'+id+'["'+n+'"]');
-                    s = self.tempString(s,key,JSON.stringify(li),n);
-                    h+=s;
-                });
+                var s = app.templates[id].valueOf().toString();
+                s = s.split("{{this").join('{{'+key+'.data.'+id);
+                s = s.split("{{value").join('{{'+key+'.data.'+id);
+                s = self.tempString(s,key,JSON.stringify(app.data[id]));
+                h+=s;
             }
         } else {
             var str = app.data[id];
             if(app.templates[id]) {
                 var s = app.templates[id].valueOf().toString();
-                //s = s.split("this").join(key+'.data.'+id);
-                s = s.split("{{val").join('{{'+key+'.data.'+id);
+                s = s.split("{{this").join('{{'+key+'.data');
+                s = s.split("{{value").join('{{'+key+'.data.'+id);
                 s = self.tempString(s,key,JSON.stringify(app.data[id]));
                 h+=s;
             } else {
