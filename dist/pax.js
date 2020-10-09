@@ -237,7 +237,6 @@ $pax.prototype = {
         });
     },
     render:function(key,id){
-        
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
@@ -293,6 +292,7 @@ $pax.prototype = {
         return h;
     },
     rendTemplate:function(key){
+        if(!this.apps[key].template) return '';
         var s = this.apps[key].template.valueOf().toString();
         if(s.indexOf('{{') == -1) return s;
         s = s.split("this.").join(key+'.data.');
@@ -612,8 +612,3 @@ $pax.prototype = {
         }
     }
 };
-
-    
-    
-
-    

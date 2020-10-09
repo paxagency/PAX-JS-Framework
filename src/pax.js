@@ -230,13 +230,13 @@ $pax.prototype = {
                     });
                 break;
                 default:
-                   
-                    (app.data[id] || app.templates[id]) ? self.render(key,id) : app.data[id] = self.numString($(o).html());
+                    if(!app.templates[id]) app.templates[id] = '{{value}}';
+                    if(!app.data[id]) app.data[id] = self.numString($(o).html());
+                    self.render(key,id);
             }
         });
     },
     render:function(key,id){
-        
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
@@ -261,7 +261,7 @@ $pax.prototype = {
                     s = s.split("{{index}}").join(n);
                     s = s.split("{{value}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
-                    s = self.tempString(s,key,JSON.stringify(li),n);
+                    s = self.tempString(s,key,li,n);
                     h+=s;
                 });
             }
@@ -273,7 +273,7 @@ $pax.prototype = {
                 var s = app.templates[id].valueOf().toString();
                 s = s.split("{{this").join('{{'+key+'.data.'+id);
                 s = s.split("{{value").join('{{'+key+'.data.'+id);
-                s = self.tempString(s,key,JSON.stringify(app.data[id]));
+                s = self.tempString(s,key,app.data[id]);
                 h+=s;
             }
         } else {
@@ -282,7 +282,7 @@ $pax.prototype = {
                 var s = app.templates[id].valueOf().toString();
                 s = s.split("{{this").join('{{'+key+'.data');
                 s = s.split("{{value").join('{{'+key+'.data.'+id);
-                s = self.tempString(s,key,JSON.stringify(app.data[id]));
+                s = self.tempString(s,key,app.data[id]);
                 h+=s;
             } else {
                 h=str;
@@ -292,6 +292,7 @@ $pax.prototype = {
         return h;
     },
     rendTemplate:function(key){
+        if(!this.apps[key].template) return '';
         var s = this.apps[key].template.valueOf().toString();
         if(s.indexOf('{{') == -1) return s;
         s = s.split("this.").join(key+'.data.');
@@ -305,10 +306,11 @@ $pax.prototype = {
     },
     tempValue:function(s,key,obj,n){
         var self = this;
-        s = s.replace('{{','').replace('}}','');
-        if(typeof n!='undefined') n = n.toString()+',';
-        if(obj && s.indexOf(')')>=0) s = s.replace(')',n+obj+')');
+        s = s.replace('{{','').replace('}}','').replace('()','');
         var v = eval("this.apps."+s);
+        if(typeof v =='function') {
+            v = (typeof n!='undefined') ?  v(n,obj) : v(obj);
+        } 
         return (typeof v != 'undefined') ? v : '';
     },
     setData:function(key,id) {
@@ -610,8 +612,3 @@ $pax.prototype = {
         }
     }
 };
-
-    
-    
-
-    
