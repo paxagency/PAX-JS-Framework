@@ -12,14 +12,22 @@ $pax.prototype = {
         var self = this;
         this.appGlob = [];
         this.appInit = [];
+         
+         
         $('template').each(function(){
             var key = $(this).attr('pax');
             var url = $(this).attr('pax-url');
             var h = $(this).html();
             if(typeof key !== 'undefined') {
+            	var url = key.split('-').join('/');
+            	if(url=="index") url = "";
                 if(self.apps[key]){
-                    if(!self.apps[key].template) self.apps[key].template = h
-                } 
+                	
+                    if(!self.apps[key].template) self.apps[key].template = h;
+                    if(!self.apps[key].url) self.apps[key].url = "/"+url;
+                } else {
+   					self.apps[key] = {template:h,url:"/"+url};
+                }
             } else if(typeof url !== 'undefined') {
                 var ur = url.split('-').join('/');
                 self.apps[url] = {
@@ -28,8 +36,9 @@ $pax.prototype = {
                 }
             }
         });
+      
         this.setRouter();
-        
+       
         $.each(this.apps,function(k,o){
             self.setDefaults(o);
             if(o.url) {
@@ -71,6 +80,7 @@ $pax.prototype = {
         var self = this;
         this.appTotal = array.length;
         this.appIndex = 0;
+       
         $.each(array,function(i,key){
             if(self.apps[key].init) self.apps[key].init();
             self.loadRequests(key,fun);
@@ -79,6 +89,7 @@ $pax.prototype = {
     loadRequests:function(key,fun){
         var self = this;
         var app = this.apps[key];
+        
         var total = (app.load) ? Object.keys(app.load).length : 0;
         if(total) {
             var index = 0;
@@ -112,15 +123,18 @@ $pax.prototype = {
     finished:function(key,fun,total,index){
         if(!total || total==index) {
             this.appIndex++;
-            var app = this.apps[key];
-            if(!app.root && $(['pax="'+key+'"']).length) app.root = '[pax="'+key+'"]';
-            if(app.prerend) app.prerend();
-            if(app.root) this.renderApp(key);
-            if(app.ready) app.ready();
+            this.initApp(key);
             if(this.appTotal==this.appIndex) {
                 if(fun) fun();
             }
         }
+    },
+    initApp:function(key) {
+    	var app = this.apps[key];
+		if(!app.root && $(['pax="'+key+'"']).length) app.root = '[pax="'+key+'"]';
+		if(app.prerend) app.prerend();
+		if(app.root) this.renderApp(key);
+		if(app.ready && (app.url && this.activeRoute == key)) app.ready();
     },
     renderApp:function(key){
         var self = this;
@@ -449,7 +463,6 @@ $pax.prototype = {
         window.location.href = u;
     },
     link:function(path){
-      
         window.history.pushState(path, path, path);
         this.setPath(path);
     },
@@ -483,11 +496,13 @@ $pax.prototype = {
             if(this.routes['/'+_path]) route = '/'+_path;
             if(this.routeTags[_path2]) route2 = _path2;
         }
-        
-        if(this.routes[route]){
+       
+        if(this.routes[route]) {
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
+            this.activeRoute = this.routes[route];
             this.loadApps([key]);
+            
             if(this.routeReady) this.routeReady();
             $.each(this.apps,function(k,o){
                 if(o.appReady) o.appReady();
