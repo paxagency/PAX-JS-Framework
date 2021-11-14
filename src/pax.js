@@ -7,22 +7,25 @@ $pax.prototype = {
     apps:{},
     appLength:0,
     appIndex:0,
+    loadMethods:{},
+    fader:1,
     el:{routes:'#routes'},
     init:function(o){
         var self = this;
         this.appGlob = [];
         this.appInit = [];
-         
+         	
          
         $('template').each(function(){
+       
             var key = $(this).attr('pax');
             var url = $(this).attr('pax-url');
             var h = $(this).html();
+            
             if(typeof key !== 'undefined') {
             	var url = key.split('-').join('/');
             	if(url=="index") url = "";
                 if(self.apps[key]){
-                	
                     if(!self.apps[key].template) self.apps[key].template = h;
                     if(!self.apps[key].url) self.apps[key].url = "/"+url;
                 } else {
@@ -98,8 +101,11 @@ $pax.prototype = {
                     var query = (o.query) ? o.query : 0;
                     self.ajax(o.url,query,function(e){
                         app.load[k].data = e;
-                        //if(app.load[k].call) app[app.load[k].call](e);
-                        if(app.load[k].call) self.call(e,app.load[k].call);
+                        if(app.load[k].init) self.call(e,app.load[k].init);
+                        if(app.load[k].ready) {
+                        	if(!self.loadMethods[key]) self.loadMethods[key] = [];
+                        	self.loadMethods[key].push({method:app.load[k].ready,data:e});
+                        };
                         index++;
                         self.finished(key,fun,total,index);
                     });
@@ -130,11 +136,13 @@ $pax.prototype = {
         }
     },
     initApp:function(key) {
+    	var self =this;
     	var app = this.apps[key];
 		if(!app.root && $(['pax="'+key+'"']).length) app.root = '[pax="'+key+'"]';
 		if(app.prerend) app.prerend();
 		if(app.root) this.renderApp(key);
 		if(app.ready && (app.url && this.activeRoute == key)) app.ready();
+		if(this.loadMethods[key]) $.each(this.loadMethods[key],function(i,o){self.call(o.data,o.method);});
     },
     renderApp:function(key){
         var self = this;
@@ -142,9 +150,9 @@ $pax.prototype = {
         app.set = function(id,val,mode){pax.set(key,id,val,mode);}
         app.push = function(id,val,index){pax.push(key,id,val,index);}
         app.pop = function(id,val){pax.pop(key,id,val);}
-        //if(app.template) $(app.root).html(self.rendTemplate(key)); 
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
+        if(self.fader) $(app.root).hide.fadeIn();
         this.renderChildren(key);
     },
     renderChildren:function(key){
