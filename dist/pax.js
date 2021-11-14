@@ -152,7 +152,7 @@ $pax.prototype = {
         app.pop = function(id,val){pax.pop(key,id,val);}
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
-        if(self.fader) $(app.root).hide.fadeIn();
+        if(self.fader) $(app.root).hide().fadeIn();
         this.renderChildren(key);
     },
     renderChildren:function(key){
