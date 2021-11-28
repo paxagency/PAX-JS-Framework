@@ -24,7 +24,7 @@ $pax.prototype = {
             var h = $(this).html();
             
             if(typeof key !== 'undefined') {
-            	var url = key.split('-').join('/');
+            	var url = key.split('_').join('/');
             	if(url=="index") url = "";
                 if(self.apps[key]){
                     if(!self.apps[key].template) self.apps[key].template = h;
@@ -33,7 +33,7 @@ $pax.prototype = {
    					self.apps[key] = {template:h,url:"/"+url};
                 }
             } else if(typeof url !== 'undefined') {
-                var ur = url.split('-').join('/');
+                var ur = url.split('_').join('/');
                 self.apps[url] = {
                     url:'/'+ur,
                     template:h
@@ -41,7 +41,7 @@ $pax.prototype = {
             }
         });
       
-        this.setRouter();
+        
        
         $.each(this.apps,function(k,o){
             self.setDefaults(o);
@@ -57,6 +57,7 @@ $pax.prototype = {
                 } 
             }
         }); 
+        this.setRouter();
         //first load gobal apps
         this.loadApps(self.appGlob,function(){
             //load remainder apps if not ignored
@@ -481,6 +482,7 @@ $pax.prototype = {
         window.location.href = u;
     },
     link:function(path){
+    	if(path[0]!="/") path = "/"+path;
         window.history.pushState(path, path, path);
         this.setPath(path);
     },
@@ -510,7 +512,7 @@ $pax.prototype = {
         
         for (var i=0, total=this.url.length; i < total; i++) {
             _path+=(i) ? '/'+this.url[i] : this.url[i];
-            _path2+=(i) ? "-"+this.url[i] : this.url[i];
+            _path2+=(i) ? "_"+this.url[i] : this.url[i];
             if(this.routes['/'+_path]) route = '/'+_path;
             if(this.routeTags[_path2]) route2 = _path2;
         }
@@ -580,7 +582,11 @@ $pax.prototype = {
         }
     },
     clone:function(obj){
-        return JSON.parse(JSON.stringify(obj));
+        var o = JSON.parse(JSON.stringify(obj));
+        $.each(obj,function(k,v){
+        	if (typeof v === 'function') o[k] = v;
+        });
+        return o;
     },
     table:function(obj,vars,opt) {
         var self = this;
