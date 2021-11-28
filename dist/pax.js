@@ -15,13 +15,16 @@ $pax.prototype = {
         var self = this;
         this.appGlob = [];
         this.appInit = [];
+         	
+         
         $('template').each(function(){
+       
             var key = $(this).attr('pax');
             var url = $(this).attr('pax-url');
             var h = $(this).html();
             
             if(typeof key !== 'undefined') {
-            	var url = key.split('_').join('/');
+            	var url = key.split('-').join('/');
             	if(url=="index") url = "";
                 if(self.apps[key]){
                     if(!self.apps[key].template) self.apps[key].template = h;
@@ -30,7 +33,7 @@ $pax.prototype = {
    					self.apps[key] = {template:h,url:"/"+url};
                 }
             } else if(typeof url !== 'undefined') {
-                var ur = url.split('_').join('/');
+                var ur = url.split('-').join('/');
                 self.apps[url] = {
                     url:'/'+ur,
                     template:h
@@ -149,16 +152,13 @@ $pax.prototype = {
         app.set = function(id,val,mode){pax.set(key,id,val,mode);}
         app.push = function(id,val,index){pax.push(key,id,val,index);}
         app.pop = function(id,val){pax.pop(key,id,val);}
+        app.render = function(){pax.renderChildren(key);}
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
         if(self.routeFade) {
-        	$(app.root).addClass("animate").addClass("fade");
-        	setTimeout(function(){
-        		$(app.root).removeClass("animate").removeClass("fade");
-        	},500);
-            
+        	$(app.root).attr("styles","opacity:0;transition: opacity 0.3s;");
+        	$(app.root).css("opacity","1");
         }
-        //if(self.routeFade) $(app.root).hide().fadeIn();
         if(self.routeMove) $("html, body").animate({ scrollTop: 0 }, 100);
         this.renderChildren(key);
     },
@@ -415,6 +415,7 @@ $pax.prototype = {
     set:function(key,id,val,value){
         if(val=='') val=null;
         var app = this.apps[key];
+        //app.data[id] = val;
         (value) ? this._set(id,val,app.values) : this._set(id,val,app.data);
         if(id.indexOf('.')>-1) id = id.split('.')[0];
         if(app.change[id]) app.change[id](val,id,key);
@@ -509,15 +510,14 @@ $pax.prototype = {
         
         for (var i=0, total=this.url.length; i < total; i++) {
             _path+=(i) ? '/'+this.url[i] : this.url[i];
-            _path2+=(i) ? "_"+this.url[i] : this.url[i];
+            _path2+=(i) ? "-"+this.url[i] : this.url[i];
             if(this.routes['/'+_path]) route = '/'+_path;
             if(this.routeTags[_path2]) route2 = _path2;
         }
-         //pax.print(this.routes);
+       
         if(this.routes[route]) {
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
-            //$(this.el.routes).html("<h1>HI</h1>");
             this.activeRoute = this.routes[route];
             this.loadApps([key]);
             
