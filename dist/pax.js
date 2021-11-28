@@ -416,7 +416,6 @@ $pax.prototype = {
     set:function(key,id,val,value){
         if(val=='') val=null;
         var app = this.apps[key];
-        //app.data[id] = val;
         (value) ? this._set(id,val,app.values) : this._set(id,val,app.data);
         if(id.indexOf('.')>-1) id = id.split('.')[0];
         if(app.change[id]) app.change[id](val,id,key);
@@ -482,7 +481,6 @@ $pax.prototype = {
         window.location.href = u;
     },
     link:function(path){
-    	if(path[0]!="/") path = "/"+path;
         window.history.pushState(path, path, path);
         this.setPath(path);
     },
