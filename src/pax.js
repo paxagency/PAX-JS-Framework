@@ -15,7 +15,10 @@ $pax.prototype = {
         var self = this;
         this.appGlob = [];
         this.appInit = [];
+         	
+         
         $('template').each(function(){
+       
             var key = $(this).attr('pax');
             var url = $(this).attr('pax-url');
             var h = $(this).html();
@@ -38,7 +41,7 @@ $pax.prototype = {
             }
         });
       
-        this.setRouter();
+        
        
         $.each(this.apps,function(k,o){
             self.setDefaults(o);
@@ -54,6 +57,7 @@ $pax.prototype = {
                 } 
             }
         }); 
+        this.setRouter();
         //first load gobal apps
         this.loadApps(self.appGlob,function(){
             //load remainder apps if not ignored
@@ -149,16 +153,13 @@ $pax.prototype = {
         app.set = function(id,val,mode){pax.set(key,id,val,mode);}
         app.push = function(id,val,index){pax.push(key,id,val,index);}
         app.pop = function(id,val){pax.pop(key,id,val);}
+        app.render = function(){pax.renderChildren(key);}
         if(!app.template) app.template = $(app.root).html();
         $(app.root).html(self.rendTemplate(key)); 
         if(self.routeFade) {
-        	$(app.root).addClass("animate").addClass("fade");
-        	setTimeout(function(){
-        		$(app.root).removeClass("animate").removeClass("fade");
-        	},500);
-            
+        	$(app.root).attr("styles","opacity:0;transition: opacity 0.3s;");
+        	$(app.root).css("opacity","1");
         }
-        //if(self.routeFade) $(app.root).hide().fadeIn();
         if(self.routeMove) $("html, body").animate({ scrollTop: 0 }, 100);
         this.renderChildren(key);
     },
@@ -513,11 +514,10 @@ $pax.prototype = {
             if(this.routes['/'+_path]) route = '/'+_path;
             if(this.routeTags[_path2]) route2 = _path2;
         }
-         //pax.print(this.routes);
+       
         if(this.routes[route]) {
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
-            //$(this.el.routes).html("<h1>HI</h1>");
             this.activeRoute = this.routes[route];
             this.loadApps([key]);
             
@@ -580,7 +580,11 @@ $pax.prototype = {
         }
     },
     clone:function(obj){
-        return JSON.parse(JSON.stringify(obj));
+        var o = JSON.parse(JSON.stringify(obj));
+        $.each(obj,function(k,v){
+        	if (typeof v === 'function') o[k] = v;
+        });
+        return o;
     },
     table:function(obj,vars,opt) {
         var self = this;
