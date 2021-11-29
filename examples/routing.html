@@ -4,8 +4,7 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.js"></script>
+        
     </head>
     <body>
         <div pax='shared'></div>
@@ -16,14 +15,9 @@
             </template>
         </div>
     </body>
-
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
  <script>
-    var pax = new $pax();
-    var app = pax.apps;
-    $(function(){
-        pax.init();
-    });
-   
     pax.routeHash=1;
     app.shared = {
         template:"<h1>Website</h1><p><button onclick='pax.link(\"routing.html#/page1\")'>Page 1</button> <button onclick='pax.link(\"routing.html#/page2\")'>Page 2</button> <button onclick='pax.link(\"routing.html#/page3\")'>Page 3</button></p>",

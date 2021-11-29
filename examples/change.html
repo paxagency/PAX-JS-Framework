@@ -4,8 +4,8 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.js"></script>
+       
+        
     </head>
     <body>
         <div pax='home'>
@@ -13,12 +13,9 @@
             <h2 class='message'>Type above for hidden message</h2>
         </div>
     </body>
-
- <script>
-    var pax = new $pax();
-    app = pax.apps;
-    $(function(){pax.init();});
-
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
     app.home = {
         change:{
             inp:function(v){
@@ -26,8 +23,6 @@
             }
         }
     }
-    
-    
- </script> 
+</script> 
 
 </html>

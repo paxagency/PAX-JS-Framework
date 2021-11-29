@@ -4,26 +4,21 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.js"></script>
+
     </head>
     <body>
         <div pax='home'>
             {{this.message}}
         </div>
     </body>
-
- <script>
-    var pax = new $pax();
-    $(function(){pax.init();});
-
-    pax.apps.home = {
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
+    app.home = {
         data:{
             message:"Hello World"
         }
     }
-    
-    
  </script> 
 
 </html>

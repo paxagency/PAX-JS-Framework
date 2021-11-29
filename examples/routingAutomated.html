@@ -4,8 +4,7 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.js"></script>
+
     </head>
     <body>
        <h1>Website</h1>
@@ -27,15 +26,10 @@
             </template>
         </div>
     </body>
-
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.min.js"></script>
  <script>
-    var pax = new $pax();
     pax.routeHash=1;
-    var app = pax.apps;
-    $(function(){
-        pax.init();
-    });
-    
     app.page3 = {
     	data:{title:"PAGE 3 <i>Interactive</i>",body:"This body text is from the class data object, not from the lorem ipsum text within the template tags."},
     	ready:function(){

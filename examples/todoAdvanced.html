@@ -4,8 +4,7 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.min.js"></script>
+        
         <style>
             .strike {text-decoration: line-through;}ul {list-style-type:none;padding:0;}
         </style>
@@ -19,12 +18,9 @@
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
     </body>
-
+ <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>    
+ <script src="../dist/pax.js"></script>
  <script>
-    var pax = new $pax();
-    var app = pax.apps;
-    $(function(){pax.init();});
-
     app.home = {
         data:{
             title:'My List',

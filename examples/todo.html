@@ -4,8 +4,7 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="../dist/pax.js"></script>
+        
     </head>
     <body>
         <div pax='home'>
@@ -16,37 +15,35 @@
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
     </body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
 
- <script>
-    var pax = new $pax();
-    var app = pax.apps;
-    $(function(){pax.init();});
+app.home = {
+	data:{
+		title:'My List',
+		todos: [
+			'Learn JavaScript',
+			'Learn Pax',
+			'Build something awesome'
+		],
+		inp:''
+	},
+	templates:{
+		todos:`<li>{{value}} <button onclick='app.home.pop("todos",{{index}})'>x</button></li>`
+	},
+	add:function(){
+		this.push('todos',app.home.data.inp);
+		this.set('inp','');
+	},
+	change:{
+		todos:function(v){
+			(!v.length) ? $('.message').show() :$('.message').hide()  
+		}
+	}
+}
 
-    app.home = {
-        data:{
-            title:'My List',
-            todos: [
-                'Learn JavaScript',
-                'Learn Pax',
-                'Build something awesome'
-            ],
-            inp:''
-        },
-        templates:{
-            todos:`<li>{{value}} <button onclick='app.home.pop("todos",{{index}})'>x</button></li>`
-        },
-        add:function(){
-            this.push('todos',app.home.data.inp);
-            this.set('inp','');
-        },
-        change:{
-            todos:function(v){
-                (!v.length) ? $('.message').show() :$('.message').hide()  
-            }
-        }
-    }
-    
-    
- </script> 
+
+</script> 
 
 </html>
