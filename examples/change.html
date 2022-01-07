@@ -10,7 +10,9 @@
     <body>
         <div pax='home'>
             <input pax='inp' type='text'/>
-            <h2 class='message'>Type above for hidden message</h2>
+            <h2 pax='message'>Type above for hidden message</h2>
+            <button onclick="pax.print(app.home.data.inp);">Share Input</button>
+            <button onclick="pax.print(app.home.data.message);">Share Message</button>
         </div>
     </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -19,7 +21,7 @@
     app.home = {
         change:{
             inp:function(v){
-                $('.message').html(v.split('').reverse().join(''));
+            	app.home.set('message',v.split('').reverse().join(''));
             }
         }
     }

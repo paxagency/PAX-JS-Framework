@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    </head>
+    <body>
+    	<hr>
+        <div pax='home'>
+        	<h1 pax="title">List of my favorite colors.</h1>
+            <ul pax="color">
+            	<li>Red</li>
+            	<li>Blue</li>
+            	<li>Green</li>
+            </ul>
+            <h2 pax="sub_title">What is your name?</h2>
+            <input type="text" pax="name">
+            <h2 pax="sub_title2">What is your favorite color?</h2>
+            <select pax="colors">
+            	<option value="red">Red</option>
+            	<option value="blue">Blue</option>
+            	<option value="green">Green</option>
+            </select>
+            <hr>
+            <br>
+            <button onclick="pax.print(app.home.data)">Show Data</button>
+            <button onclick="pax.print(app.home.values)">Show Values</button>
+            <button onclick="app.home.changeData()">Change Data</button>
+            <button onclick="app.home.changeValues()">Change Values</button>
+        </div>
+    </body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
+    app.home = {
+        ready:function(){
+        	alert("app is ready")
+        },
+        changeData:function(){
+        	this.set('title',"All of my favorite flavors");
+        	this.set('color',["Chocolate","Vanilla","Strawberry"]);
+        	this.set('sub_title',"Write your last name.");
+        	this.set('sub_title2',"And favorite flavor?");
+        	this.set('colors',[
+        			{"id":"chocolate","text":"Chocolate"},
+        			{"id":"vanilla","text":"Vanilla"},
+        			{"id":"strawberry","text":"Strawberry"},
+        			{"id":"green","text":"Butter Pecan"},
+        		]);
+        },
+        changeValues:function(){
+        	this.set('colors',false,{id:'green'});
+        	this.set('name','Frank');
+        }
+    }
+ </script> 
+
+</html>
