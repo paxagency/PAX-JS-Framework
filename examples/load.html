@@ -19,7 +19,7 @@
             <h1>Ajax load test </h1>
             <p><em>(reload for a new answer)</em></p><hr />
             <h2>The answer is {{this.answer}}.<br /> <img src='{{this.image}}' /></h2>`,
-        prerend:function(){
+        loaded:function(){
             this.data.answer = this.load.question.data.answer;
             this.data.image = this.load.question.data.image;
         }

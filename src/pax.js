@@ -7,7 +7,6 @@ $pax.prototype = {
     apps:{},
     appLength:0,
     appIndex:0,
-    loadMethods:{},
     routeFade:1,
     routeMove:1,
     appGlob:[],
@@ -76,6 +75,7 @@ $pax.prototype = {
     	var requests=[];
     	var self = this;
     	var app = this.apps[key];
+    	if(app.init) app.init();
     	var total = (app.load) ? Object.keys(app.load).length : 0;
     	if(!total) {
 			self.initApp(key);
@@ -100,11 +100,7 @@ $pax.prototype = {
     setLoad:function(key,k,e){
     	var app = this.apps[key];
     	app.load[k].data = e;
-		if(app.load[k].init) self.call(e,app.load[k].init);
-		if(app.load[k].ready) {
-			if(!self.loadMethods[key]) self.loadMethods[key] = [];
-			self.loadMethods[key].push({method:app.load[k].ready,data:e});
-		}
+		if(app.load[k].loaded) this.call(e,app.load[k].loaded);
     },
     call:function(v,f){
         var exp = f.split('.');
@@ -118,10 +114,9 @@ $pax.prototype = {
     	var self =this;
     	var app = this.apps[key];
 		if(!app.root && $('[pax="'+key+'"]').length) app.root = '[pax="'+key+'"]';
-		if(app.prerend) app.prerend();
+		if(app.loaded) app.loaded();
 		if(app.root) this.renderApp(key);
 		if(app.ready) app.ready();
-		if(this.loadMethods[key]) $.each(this.loadMethods[key],function(i,o){self.call(o.data,o.method);});
     },
     renderApp:function(key){
         var self = this;
@@ -193,11 +188,11 @@ $pax.prototype = {
                     $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'INPUT':
-                    (app.data[id] || app.data[id]==0) ? $(o).val(app.data[id]) : app.data[id] = self.numString($(o).val());
+                    (app.data[id] || app.data[id]==0) ? $(o).val(app.data[id]) : app.data[id] = $(o).val();
                     $(app.el[id]).on('keyup',{self:self},function(e){ e.data.self.setData(key,id);});
                 break;
                 case 'TEXTAREA':
-                    (app.data[id]) ? $(o).html(app.data[id]) : app.data[id] = self.numString($(o).html());
+                    (app.data[id]) ? $(o).html(app.data[id]) : app.data[id] = $(o).html();
                     $(app.el[id]).on('focusout',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'SELECT':
@@ -239,72 +234,90 @@ $pax.prototype = {
                 break;
                 default:
                     if(!app.templates[id]) app.templates[id] = '{{value}}';
-                    if(!app.data[id]) app.data[id] = self.numString($(o).html());
+                    if(!app.data[id]) app.data[id] = $(o).html();
                     self.render(key,id);
             }
         });
     },
     render:function(key,id){
-        if(!this.apps[key]) return "";
+        if(!this.apps[key]) {
+            alert('App "'+key+'" does not exist');
+            return;
+        }
         if(!id) return this.loadApps([key]);
         var self = this;
         var app = this.apps[key];
-        var data = app.data[id];
-        var h = '';
-        if(!data) data = "";
        
-        if(Array.isArray(data)){
+        var tag = app.tag[id];
+        var val = app.data[id];
+        var h = '';
+       
+        if(!val) val = '';
+        
+        if(Array.isArray(val)){
+            
             if(!app.templates[id]) {
-                h=JSON.stringify(data);
+                h=JSON.stringify(val);
             } else {
                 $.each(app.data[id],function(n,li){
                     var s = app.templates[id].valueOf().toString();
                     s = s.split("{{index}}").join(n);
                     s = s.split("{{value}}").join(li);
-                    s = self.tempString(s,key,li,n,id);
+                    s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
+                    s = self.tempString(s,key,li,id,n);
                     h+=s;
                 });
             }
-        } else {
+        } else if(typeof val === 'object') {
+            
             if(!app.templates[id]) {
-                h=(typeof data === 'object') ? JSON.stringify(data) : data;
+                h=JSON.stringify(val);
             } else {
                 var s = app.templates[id].valueOf().toString();
-                s = (s=="{{value}}") ? app.data[id] : self.tempString(s,key,app.data[id],0,id);
+                s = s.split("{{this").join('{{'+key+'.data.'+id);
+                s = s.split("{{value").join('{{'+key+'.data.'+id);
+                s = self.tempString(s,key,app.data[id],id);
                 h+=s;
             }
-        } 
+        } else {
+            var str = app.data[id];
+            if(app.templates[id]) {
+                var s = app.templates[id].valueOf().toString();
+                s = s.split("{{this").join('{{'+key+'.data');
+                s = s.split("{{value").join('{{'+key+'.data.'+id);
+                s = self.tempString(s,key,app.data[id],id);
+                h+=s;
+            } else {
+                h=str;
+            }
+        }
         $(app.el[id]).html(h);
         return h;
-    },
-    tempString:function(s,key,obj,n,id) {
-        var self = this;
-        if(s.indexOf('{{') == -1) return s;
-        return s.replace(/\{\{[^\}]*\}\}/g,function(match){
-        	match = match.replace('{{','').replace('}}','');
-			if(match.indexOf(".")>=0) {
-				parts = match.split(".");
-				k = parts.splice(0,1);
-				match = parts.join();
-				if(k=="this") {
-					var val =  self._get(match,obj);
-				} else {
-					var val =  self._get(match,pax.apps[k]);
-				}
-				if(typeof val =='function') {
-					val = (typeof n!='undefined') ?  val(n,obj) : val(obj);
-				} 
-			} else {
-				var val= self._get(match,obj);
-			}
-			return val;
-        });
     },
     rendTemplate:function(key){
         if(!this.apps[key].template) return '';
         var s = this.apps[key].template.valueOf().toString();
         if(s.indexOf('{{') == -1) return s;
-        return this.tempString(s,key,this.apps[key].data);
+        s = s.split("this.").join(key+'.data.');
+        return this.tempString(s,key);
+    },
+    tempString:function(s,key,obj,id,n) {
+        var self = this;
+        return  s.replace(
+            /\{\{[^\}]*\}\}/g,
+            function (val, index) { return self.tempValue(val,key,obj,id,n); });
+    },
+    tempValue:function(s,key,obj,id,n){
+        var self = this;
+        s = s.replace('{{','').replace('}}','').replace('()','');
+        s = s.split("||");
+        var v = eval("this.apps."+s[0].trim());
+        if(typeof v =='function') {
+            v = (typeof n!='undefined') ?  v(n,obj) : v(obj);
+        } 
+        if(s[1] && !v) v = s[1].trim();
+        if(this.apps[key].filters[id]) v = this.apps[key].filters[id](v);
+        return (typeof v != 'undefined') ? v : '';
     },
     setData:function(key,id) {
         var self = this;
@@ -337,11 +350,6 @@ $pax.prototype = {
         }
         if(app.change[id]) app.change[id](app.data[id],id,key);
     },
-	numString:function(s){
-		//if(s=='') return null;
-  		//return (!isNaN(s) && s[0]!='0') ? parseFloat(s) : s;
-        return s;
-  	},
   	setHTML:function(key,id) {
         var self = this;
         var app = this.apps[key];

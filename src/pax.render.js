@@ -1,6 +1,5 @@
 //$pax.prototype.rend = //var $render = function(type) {};
-var $rend = 
-{
+var $rend = {
     fileServer:"",
     pages: function(page,max,total,el,fun) {
         total = Math.ceil(total/max);
