@@ -40,13 +40,12 @@
         },
         loaded:function(){
         	$.each(this.data.nav,function(i,o){
-        		if(pax.url[0]==o.href.split("/")[1]) o.active="active";
+        		if(pax.url[0]==o.href.substring(2)) o.active="active";
         	});
         },
         setActive:function(n){
-        	$.each(this.data.nav,function(i,o){o.active="";});
-        	this.data.nav[n].active = "active";
-        	this.render("nav");
+        	this.set("nav.*.active","");
+        	this.set("nav."+n+".active","active");
         	pax.link(this.data.nav[n].href);
         }
     }
