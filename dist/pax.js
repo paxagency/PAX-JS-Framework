@@ -553,8 +553,17 @@ $pax.prototype = {
             if (!obj.hasOwnProperty(path[0]) || typeof obj[path[0]] !== "object") {
                 obj[path[0]] = (Number.isInteger(parseInt(path[1]))) ? [] : {};
             }
-            first = (first) ? first : obj[path[0]];
-            return this._set(path.slice(1), value, obj[path[0]],first);
+            if(path[0]=="*"){
+            	var self = this;
+            	$.each(obj,function(i,o){
+            		first = (first) ? first : o;
+            		self._set(path.slice(1), value, o,first);	
+            	});
+            } else {
+            	first = (first) ? first : obj[path[0]];
+            	return this._set(path.slice(1), value, obj[path[0]],first);
+            }
+            
         } else {
             obj[path] = value;
             return first;
