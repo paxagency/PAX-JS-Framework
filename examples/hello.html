@@ -8,15 +8,41 @@
     </head>
     <body>
         <div pax='home'>
-            {{this.message}}
+            <h1 pax="title"></h1>
+            <ul pax="nav"></ul>
+        </div>
+        <hr />
+        <div id="routes">
+            <template pax="index">
+                <h1>Home Page</h1>
+                <p>This is my website. </p>
+            </template>
+            <template pax="about">
+                <h1>About Page</h1>
+                <p>Welcome!</p>
+            </template>
+            <template pax="contact">
+                <h1>Contact Page</h1>
+                <p>Please contact us.</p>
+            </template>
         </div>
     </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
 <script>
+    pax.routeHash = true;
     app.home = {
+        templates:{
+            nav:"<li><a href='{{this.href}}'>{{this.label}}</a></li>"
+        },
         data:{
-            message:"Hello World"
+            message:"Hello World!!!",
+            title:"Website",
+            nav:[
+                {"label":"Home","href":"#/"},
+                {"label":"About","href":"#/about"},
+                {"label":"Contact","href":"#/contact"},
+            ]
         }
     }
  </script> 
