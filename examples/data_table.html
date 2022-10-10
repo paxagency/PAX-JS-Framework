@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    </head>
+    <body>
+        <div pax='home'>
+        	<h1 pax="title"></h1>
+            <table>
+            	<thead>
+            		<th>First Name</th>
+            		<th>Last Name</th>
+            		<th>Age</th>
+            	</thead>
+            	<tbody pax='tbody'></tbody>
+            </table>
+            
+            <hr>
+            <h1 pax="title2"></h1>
+            <table pax="table"></table>
+            
+            <hr>
+            <h1 pax="title3"></h1>
+            <table>
+            	<thead>
+            		<th>Date Available</th>
+            		<th>Position</th>
+            	</thead>
+            	<tbody pax='tbody3'>
+            		<tr>
+            			<td>{{this.date_open}}</td>
+            			<td>{{this.position}}</td>
+            		</tr>
+            	</tbody>
+            </table>
+        </div>
+    </body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
+    app.home = {
+        data:{
+        	title:"Employees",
+        	tbody:[
+        		{"first_name":"Jeremy","last_name":"Smith","age":22},
+        		{"first_name":"Ryan","last_name":"Reynalds","age":27},
+        		{"first_name":"Owen","last_name":"Grant","age":21},
+        		{"first_name":"Jason","last_name":"Bourne","age":35}
+        	],
+        	title2:"Managers",
+        	table:[
+        		{"first_name":"Barry","last_name":"Sylvin","age":33},
+        		{"first_name":"Carl","last_name":"Newsome","age":42},
+        		{"first_name":"Eric","last_name":"King","age":19},
+        		{"first_name":"Craig","last_name":"Gross","age":29}
+        	],
+        	title3:"Jobs - Template example",
+        	tbody3:[
+        		{"position":"Central Manager","date_open":"01/23","contact":5555555555},
+        		{"position":"Southeast Manager","date_open":"01/22","contact":5555555555},
+        		{"position":"Mideast Manager","date_open":"01/12","contact":5555555555},
+        		{"position":"Northeast Manager","date_open":"01/09","contact":5555555555},
+        		{"position":"Southeast Manager","date_open":"01/18","contact":5555555555},
+        		{"position":"Southwest Manager","date_open":"01/12","contact":5555555555},
+        	]
+        }
+    }
+    
+ </script> 
+
+</html>

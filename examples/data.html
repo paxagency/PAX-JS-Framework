@@ -30,6 +30,9 @@
             <button onclick="app.home.changeData()">Change Data</button>
             <button onclick="app.home.changeValues()">Change Values</button>
         </div>
+        <div pax='colors1'>
+        	<h1 pax='title'>Title2 </h1>
+        </div>
     </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
@@ -54,6 +57,11 @@
         	this.set('colors',false,{id:'green'});
         	this.set('name','Frank');
         }
+    }
+    app.colors1 = {
+    	data:{
+    		title:"App 2 Title"
+    	}
     }
  </script> 
 

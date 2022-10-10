@@ -1,5 +1,6 @@
 //$pax.prototype.rend = //var $render = function(type) {};
-var $rend = {
+var $rend = 
+{
     fileServer:"",
     pages: function(page,max,total,el,fun) {
         total = Math.ceil(total/max);
@@ -47,16 +48,16 @@ var $rend = {
             return h+='</ul>';
         }
     },
-    table:function(obj,vars,opt) {
+    table:function(obj,vars,opt,edit) {
         var self = this;
         if(!opt) opt = {};
         if(obj.length==0)  return  "<tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody>";
         var h = "<thead><tr>";
-       
+      
         if(!vars){
         
             $.each(obj[0],function(k,o) {
-                h+="<th>"+k+"</th>";
+                h+="<th>"+k.split("_").join(" ")+"</th>";
             });
         } else {
             $.each(vars,function(k,v){
@@ -65,21 +66,33 @@ var $rend = {
                     h+="<th "+click+" data-id="+v.id+" data-index="+k+">"+v.thead+"</th>";
                 } else {
                 	var label = (v.thead) ? v.thead : v.label;
-                	if(!v.label) label = v.id.split('_').join(' ');
-                	label = label.split('.')[0];
-                    h+="<th "+click+" data-id="+v.id+" data-index="+k+">"+label+"</th>";
+                	if(!v.label && v.id) label = v.id.split('_').join(' ');
+                	label = (label) ? label.split('.')[0] : "";
+                	var sort = (v.sort) ? "data-sort='"+v.sort+"'" : "";
+                    h+="<th "+click+" data-id='"+v.id+"' data-index='"+k+"' "+sort+">"+label+"</th>";
                 }
             });
         }
        
         h+="</tr></thead><tbody>";
+        var events = "";
+        if(opt["on"]) {
+        	$.each(opt["on"],function(event,method){
+        		events+=" on"+event+"='"+method+"(this,event) '";
+        	});
+        }
+                
         if(!vars){
+        	if(opt.setAttr)  $.each(obj[0],function(i,v){ opt.trAttr.push(i)});
+       
             $.each(obj,function(i,o) {
                 var id = (o.id) ? "data-id='"+o.id+"'" : "";
                 var attr = '';
-                if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
-                h+="<tr "+attr+" "+id+" data-index='"+i+"'>";
+                if(opt.trAttr) $.each(opt.trAttr, function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
+               
+                h+="<tr "+attr+" "+id+" data-index='"+i+"' "+events+">";
                 var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
+                
                 $.each(o,function(i,v){
                     h+= (v!=null) ? "<td "+click+">"+v+"</td>" : "<td></td>";
                 });
@@ -87,13 +100,19 @@ var $rend = {
             });
             return h+"</tbody>";
         } else {
-           
+        	if(!opt.trAttr) opt.trAttr = [];
+           if(opt.setAttr)  $.each(vars,function(i,v){ if(v.id) opt.trAttr.push(v.id)});
+       
             $.each(obj,function(i,o) {
            
                 var attr = '';
-                if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {attr+=' data-'+trK+'="'+o[trK]+'"'});
+                if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {
+					var v = self._get(trK,o);
+					trK = trK.split('.').join("-");
+					attr+=' data-'+trK+'="'+v+'"'}
+				);
                 var id = (o.id) ? "data-id='"+o.id+"'" : "";
-                h+="<tr "+id+" "+attr+"  data-index='"+i+"'>";
+                h+="<tr "+id+" "+attr+"  "+events+" data-index='"+i+"'>";
                 
                 $.each(vars,function(n,v){
                     var k = v.id;
@@ -101,6 +120,58 @@ var $rend = {
                     attr = '';
                     if(opt.attr) $.each(opt.attr,function(attr_k,attr_v) {attr+=' data-'+attr_k+'="'+attr_v+'"'});
                     if(v.attr) $.each(v.attr,function(attr_k,attr_v) {attr+=' data-'+attr_k+'="'+attr_v+'"'});
+                    if(v.cl) attr+=" class='",$.each(v.cl,function(q,cl) {attr+=" "+cl+" "}),attr+="'";
+                    
+                    var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
+                    if(v['tdClick']) click="onclick='"+v['tdClick']+"(this)'";
+                    
+                    var val = (v.val) ? v.val : self._get(k,o);
+                    if(v.key) val = v.key[val];
+                    if(v.ids) {
+                        $.each(v.ids,function(x,ids){
+                            val+=" "+self._get(ids,o);
+                        });
+                    }
+                    
+                    if(v.call) val = self.call(val,v.call);
+					if(v.type) val = self.filter(val,v.type);
+					if(edit) {
+						var e = {};
+						e[v.id] = val;
+						if(!v.type) v.type = "text";
+						
+					    val=self.vewType(v,e);
+					}
+					
+					
+                    h+= (val!=null) ? "<td "+click+" "+attr+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
+                });
+                h+="</tr>";
+            });
+            return h+"</tbody>";
+        }
+    },
+    tableRow:function(o,vars,opt) {
+    	if(!opt) opt = {};
+    	var self = this;
+    	var attr = '';
+    	if(!opt.trAttr) opt.trAttr = [];
+        if(opt.setAttr)  $.each(vars,function(i,v){ if(v.id) opt.trAttr.push(v.id)});
+
+        if(opt.trAttr) $.each(opt.trAttr,function(i,trK) {
+        	var v = self._get(trK,o);
+        	trK = trK.split('.').join("-");
+        	attr+=' data-'+trK+'="'+v+'"'}
+        );
+        var id = (o.id) ? "data-id='"+o.id+"'" : ""; 
+     	var h="<tr "+id+" "+attr+" >";
+                $.each(vars,function(n,v){
+                    var k = v.id;
+                    attr = '';
+                    if(opt.attr) $.each(opt.attr,function(attr_k,attr_v) {attr+=' data-'+attr_k+'="'+attr_v+'"'});
+                    if(v.attr) $.each(v.attr,function(attr_k,attr_v) {attr+=' data-'+attr_k+'="'+attr_v+'"'});
+                    if(v.cl) attr+=" class='",$.each(v.cl,function(q,cl) {attr+=" "+cl+" "}),attr+="'";
+                    
                     var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
                     if(v['tdClick']) click="onclick='"+v['tdClick']+"(this)'";
                     
@@ -116,12 +187,10 @@ var $rend = {
 					if(v.type) val = self.filter(val,v.type);
                     h+= (val!=null) ? "<td "+click+" "+attr+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
                 });
-                h+="</tr>";
-            });
-            return h+"</tbody>";
-        }
+                return h+="</tr>";
+
     },
-    tableRow:function(obj,vars,opt) {
+    tableRow1:function(obj,vars,opt) {
         if(!opt) opt = {};
             var o  = obj;
             var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
@@ -148,11 +217,15 @@ var $rend = {
             case 'image':
             	return "<img src='"+self.fileServer+val+"'/>";
             case 'date':
-            	return self.date.get(val);
+            	return app.glob.date.get(val);
+            case 'datetime':
+            	return app.glob.date.getTime(val);
             case 'dateMonth':
-            	return self.date.getMonth(val);
+            	return app.glob.date.get(val,"MM/YY");
             case 'fromNow':
-            	return self.date.timeFromNow(val);
+            	return app.glob.date.now(val);
+            case 'checkbox':
+            	return (val) ? "Yes" : "No";
             default:
             	return val;
         }
@@ -165,6 +238,34 @@ var $rend = {
     },
     remove:function(t){
         $(t).parent().remove();
+    },
+    formSide:function(e,opt){
+        var h='';
+        var self = this;
+        
+        if(!opt){
+            opt = [];
+            $.each(e,function(k,o){
+                opt.push({label:k,fields:[{type:'text',id:k}]});
+            });
+        }
+        $.each(opt,function(i,row){
+            h+="<tr data-key='"+i+"' class='row"+i+"'><td>"+row.label+"</td><td>";
+            var count = row.fields.length;
+            var width  = 100/count;
+            $.each(row.fields,function(n,td){
+            	if(width<100) {
+            		if(!td.attr) td.attr = {};
+            		var marg = (n) ? "margin-left:1%;" : "";
+            		var w = (n) ? width-1 : width;
+            		//if(!td.attr.style) td.attr.style="";
+            		//td.attr.style+= "width:"+w+"%;"+marg;
+            	}
+                h+=self.renderRow(td,e,self,"","NO");
+            });
+            h+="</td></tr>";
+        });
+        return "<table class='form-side'><tbody>"+h+"</tbody></table>";
     },
     form:function(data,frame,nest){
         var h= '<ul class="form">';
@@ -180,7 +281,7 @@ var $rend = {
                 var fr = JSON.stringify(row[0].frame);
                 var id = self.genId();
                 h+=`<div data-type="${row[0].type}" data-id='${row[0].id}' name='${row[0].id}' id='${row[0].id}-${id}'>`;
-                h+=`<label class="label">${row[0].label} <a onclick='$rend.add(${fr},"${row[0].id}-${id}")'>+</a></label> <div class='form-container'>`;
+                h+=`<label class="label">${row[0].label} <a class='a-group-add' onclick='$rend.add(${fr},"${row[0].id}-${id}")'>+</a></label> <div class='form-container'>`;
                 $.each(data[row[0].id],function(z,drow){
                     var q = self.form(drow,row[0].frame,row[0].id);
                     h+=self.form(drow,row[0].frame,1);
@@ -192,8 +293,10 @@ var $rend = {
                     var id = self.genId();
                     var label= (td.label) ? td.label : "";
                     label= (td.text) ? td.text : "";
+                    if(!td.type && td.html) td.type = "html";
+                    if(!td.type) td.type = "text";
                     if(label=="" && td.id) label = td.id.split('_').join(' ');
-                    h+=`<div data-type="${td.type}" data-id="${row[0].id}">`;
+                    h+=`<div data-type="${td.type}" data-id="${td.id}">`;
                     if(td.type!='hidden') h+=`<label for="${td.id}-${id}" class="label" >${label}</label>`;
                     //h+=`<input type="text" name="${td.id}"  id="${td.id}-${id}"  value="${val}"/>`;
                     h+=self.vewType(td,data,td.id+'-'+id,nest);
@@ -255,7 +358,7 @@ var $rend = {
     plus:function(id){
         //alert(id);
         this.data[id].push({});
-        pax.print(pax.rend.data);
+       // pax.print(pax.rend.data);
         var h = this.form(this.data,this.frame);
         //alert(pax.rend.data);
         pax.rend.render(h);
@@ -299,8 +402,11 @@ var $rend = {
         return a;
     },
     vewType:function(td,e,name,nest){
+    	
         var self = this;
+       
         val = this._get(td.id,e);
+       
         if(td.val) val = td.val;
         if(td.call) val = this.call(val,td.call);
         
@@ -316,16 +422,32 @@ var $rend = {
         if(val==null) val = '';
         
         cl='class="'+td.class.join(' ')+'"';
- 
+ 		
         switch(td.type){
             case 'text':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+">";
             case 'date':
-            	val = $rend.filter(val,'date');
-                return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='date'>";
+            	//val = $rend.filter(val,'date');
+                //return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='date'>";
+            	td.class.push("date");
+            	val = self.filter(val,"date");
+            	cl='class="'+td.class.join(' ')+'"';
+            	return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+">";
+				case 'datetime':
+            	//val = $rend.filter(val,'date');
+                //return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='date'>";
+            	td.class.push("datetime");
+            	cl='class="'+td.class.join(' ')+'"';
+            	
+            	val = self.filter(val,"datetime");
             
-            case 'id':
+            	return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+">";
+
+            	case 'id':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='alphaNumericDash'>";
+                case 'url':
+                return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='alphaNumericSlash'>";
+               
                 case 'number':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='decimal'>";
                 case 'money':
@@ -335,11 +457,15 @@ var $rend = {
                 case 'email':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='email' vfoc='email'>";
                 case 'image':
-                   
-                    var h ="<div class='input image_upload'>";
+                    var attr = (td.width) ? "data-width='"+td.width+"' " : "";
+                    if(td.height) attr+="data-height='"+td.height+"' ";
+                    if(td.thumb) attr+="data-thumb='"+td.thumb+"' ";
+                    if(td.query) attr+="data-query='"+td.query+"' ";
+                    if(td.orientation) attr+="data-orientation='"+td.orientation+"' ";
+                    var h ="<div class='input image_upload' "+attr+" data-id='"+td.id+"'><div class='progress' style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div>";
                     if(!val) return h+'<span class="inputs"></span><span class="images"></span><br /><input type="file"></input></p>';
                     if( typeof val !='object') {
-                        return h+"<span class='inputs'><input type='hidden' data-type='"+td.type+"' id='"+td.id+"' name='"+td.id+"' value=\""+val+"\"'></input></span><span class='images'><img src=\""+self.fileServer+val+"\" style='max-height:200px;'/></span><br /><input type='file' ></p>"
+                        return h+"<span class='inputs'><input type='hidden' data-type='"+td.type+"' id='"+td.id+"' name='"+td.id+"' value=\""+val+"\"'></input></span><span class='images'><img src=\""+val+"\" style='max-height:200px;'/></span><br /><input type='file' ></p>"
                     } else {
                         var inputs = '<span class="inputs">';
                         var images = '<span class="images">';
@@ -355,8 +481,26 @@ var $rend = {
                     //$.each(val,function(i,o){val[i]=self.fileServer+o});
                     return "<div id='"+td.id+"'></div><script> $(function(){$('#"+td.id+"').zoomy(['"+val.join("','")+"'],{})));</script>";
                // return "<img  id='"+td.id+"'  src=\""+self.fileServer+val+"\" "+attr+" "+cl+" />";
+			case 'images':
+				 val = [
+						"https://www.ebyexteriors.com/wp-content/uploads/2020/03/deck-color-schemes.jpg",
+						"https://www.bankrate.com/2021/05/03094639/How_much_does_it_cost_to_build_a_deck-1104x720.jpg",
+						"https://diy.sndimg.com/content/dam/images/diy/fullset/2010/6/4/1/CI-Timber-Tech_multi-level-deck_s4x3.jpg.rend.hgtvcom.1280.960.suffix/1420870953404.jpeg",
+					];
+					 var h ="<div class='input image_upload'  data-id='"+td.id+"'><div class='progress' style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div>";
+					
+					$.each(val,function(i,o){
+						var name = o.split("/");
+						name = name[name.length-1];
+					
+						h+="<a class='thumb'><span class='thumb-img' style='background:url("+o+");'></span><span class='thumb-text'>"+name+"</span></a>";
+					});
+					h+=" <a class='thumb-upload' ><span style='font-size:32px'>+</span><br> Upload</a></p>"
+					return h+"</div>";
+
 		   case 'table':
 			   return "<table class='list'>"+self.table(val)+"<table>";
+            
             case 'password':
                 return "<input type='password' data-type='"+td.type+"' name='"+td.id+"'  id='"+name+"' value='"+val+"' "+attr+" "+cl+">";
             case 'title':
@@ -364,12 +508,37 @@ var $rend = {
             case 'html':
                 return td.html;
             case 'file':
-                 var h = "<div class=' input'>";
-                 if(val) h+="<a href='"+val+"'><div class='jam jam-document'></div></a>"
-                 return h+="<input  type='file'/></div>";
+            	
+                 var h = "<div class=' input'><div class='progress'  style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div><span class='images'>";
                  
+                 if(val) {
+                     var split = val.split("/");
+                     name = split[split.length-1];
+                     h+="<p><a href='"+val+"' target='_blank'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a></p>"
+                 }
+                 
+                 return h+="</span><span class='inputs'></span><input  type='file'/></div>";
+            case 'files':
+            	
+                 var h = "<div class=' input' style='position:relative;'><div class='progress'  style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div><span class='images'>";
+                 
+                 if(val) {	
+                 	h+="<p style='position:relative;'>";
+                 	$.each(val,function(i,v){
+                 		var split = v.url.split("/");
+                    	 name = "contract101.pdf";
+                     	h+="<a href='"+v.url+"' target='_blank' class='file'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a>"
+                 	})
+                 	h+=" <a class='thumb-upload' ><span style='font-size:32px'>+</span><br> Upload</a></p>"
+                 }
+                 
+                 return h+="</span><span class='inputs'></span><input  type='file'/></div>";
+            
             case 'textarea':case 'body':
                 return "<textarea type='text' name='"+td.id+"' id='"+name+"' "+attr+" "+cl+">"+val+"</textarea>";
+            case 'redactor':
+                return "<textarea type='text' name='"+td.id+"' id='"+name+"' "+attr+" "+cl+">"+val+"</textarea><script>RedactorX('#"+td.id+"');</script>";
+            
             case 'hidden':
                 return "<input data-type='"+td.type+"' type='hidden' id='"+name+"' name='"+td.id+"' value='"+val+"'>";
             case 'grid':
@@ -425,15 +594,59 @@ var $rend = {
                     return h+'</span>';
             case 'object': 
             	//return self.viewType({id:td.id,type:"select",ajax:"/api/crud/select/"+td.id},e,name);
-            	td.type = "select";
-            	td.ajax = "/api/crud/select/"+td.id;
-            case 'select2':
-            	var ran = 'list'+Math.random()*10000;
+            	td.type = "keyword";
+            	td.url = (td.url) ? td.url : "/api/crud/select/"+td.id;
+                
+            case 'keyword':
+            	 var unique = self.uniqueId();
+            	 h+='<select id="'+unique+'"   data-id="'+td.id+'"  name="'+td.id+'" '+attr+' '+cl+'>';
+                 if(td.json){
+                    this.loading=1;
+                    var valueId = val.id;
+                    
+                    $.get(td.json).done(function(e) {
+                    	e = JSON.parse(e);
+                    	var h = '';
+                    	
+                        $.each(e,function(n,o){
+                            var selected = (valueId && o.id && o.id==valueId) ? 'selected' : '';
+                            
+                            var value = (typeof o.id !== 'undefined') ? o.id : '';
+                        	var attr2 = $rend.rendAttr(o);
+                        	
+                            h+='<option value="'+value+'" '+attr2+' '+selected+'>'+o.text+'</option>';
+                        });
+                      
+                        $('#'+unique).html(h);
+                        $('#'+unique).keyword();
+                     });
+                     return h+'</select>';
+                }
+                if(td.url){
+                    if(val) {
+                        h+='<option value="'+val.id+'" selected>'+val.text+'</option>';
+                    }
+                    
+                    
+                    return h+"</select><script>$(function(){$('#"+unique+"').keyword({url:'"+td.url+"',post_key:'query'})});</script>";
+                }
+                
+                $.each(td.options,function(n,o){
+                    
+                    var selected = (o.value==val.value) ? 'selected' : '';
+                    if(!val.value) selected=(o.value==td.default) ? 'selected' : '';
+                    var value = (typeof o.value !== 'undefined') ? o.value : '';
+                    var attr2 = $rend.rendAttr(o);
+                    h+='<option value="'+value+'" '+attr2+' '+selected+'>'+o.label+'</option>';
+                });
+                return h+'</select>';
+            	/*var ran = 'list'+Math.random()*10000;
                 h+='<select id="'+name+'"data-ran="'+ran+'" data-key="'+td.id+'"  name="'+td.id+'" '+attr+' '+cl+'>';
             	if(val) h+='<option value="'+val.id+'" selected>'+val.text+'</option>';
                 var ret = (td.data) ? td.data+'=data;' : '';
                 return h+"</select><script>$(function(){$('[data-key=\""+td.id+"\"]').select2({ajax:{url: function (params) {return (params.term) ? '"+td.url+"/' + params.term : '"+td.url+"';},delay: 250,dataType:'json',processResults:function(data){"+ret+"return{results:data}}}})});</script>";
-            case 'select':
+                 */       
+            case 'select': 
             	var id = td.id;
              	var valueId = (val.id) ? val.id : val;
                 h+='<select id="'+name+'" data-key="'+td.id+'"  name="'+td.id+'" '+attr+' '+cl+'><option disabled selected value> </option>';
@@ -460,9 +673,79 @@ var $rend = {
                 return h+'</select>';
             case 'objects': 
             	//return self.viewType({id:td.id,type:"select",ajax:"/api/crud/select/"+td.id},e,name);
-            	td.type = "multiple";
-            	//td.ajax = "/api/crud/select/"+td.id;
-           		td.selectAjax = true;
+            	td.type = "keywordMultiple";
+            	td.url = (td.url) ? td.url : "/api/crud/select/"+td.id;
+                td.selectAjax = true;
+           	case 'tags': 
+            	//return self.viewType({id:td.id,type:"select",ajax:"/api/crud/select/"+td.id},e,name);
+            	td.type = "keywordMultiple";
+            	td.selectAjax = true;
+                td.free_text = true;
+           	case 'keywordMultiple':
+           		var unique = self.uniqueId();
+            	h+='<select id="'+unique+'" data-id="'+td.id+'" name="'+td.id+'" '+attr+' '+cl+' multiple>';
+                
+                if(td.json){
+                    // var selected = (e[td.id].id && e[td.id].id.indexOf(o.id)>=0) ? 'selected' : '';
+                   
+                    this.loading=1;
+                	
+                	$.ajax({
+						url: td.json,
+						type: "GET",
+						dataType: "json",
+						val: val,
+						success: function(e, textStatus, jqXHR) {
+							var h = '';
+                        	var self = this;
+							$.each(e,function(n,o){
+								var selected = (val && val.id && val.id.indexOf(o.id)>=0) ? 'selected' : '';
+								$.each(self.val,function(i,ob){if(ob.id==o.id) selected='selected'})
+								var value = (typeof o.id !== 'undefined') ? o.id : '';
+								var attr2 = $rend.rendAttr(o);
+								h+='<option value="'+value+'" '+attr2+' '+selected+'>'+o.text+'</option>';
+							});
+							alert(h);
+							$('#'+unique).html(h);
+							var free = (td.free_text) ? 1 : 0;
+                    
+							$('#'+unique).keyword({free_text:free});
+						}
+					});
+
+                    /*pax.ajax(td.json,0,function(e){
+                        var h = '';
+                        pax.print(val);
+                        $.each(e,function(n,o){
+                            var selected = (val && val.id.indexOf(o.id)>=0) ? 'selected' : '';
+                            $.each(val,function(i,ob){if(ob.id==o.id) selected='selected'})
+                            var value = (typeof o.id !== 'undefined') ? o.id : '';
+                            h+='<option value="'+value+'" '+selected+'>'+o.text+'</option>';
+                        });
+                        $('#'+td.id).html(h);
+                        $('#'+td.id).select2();
+                    });*/
+                    return h+'</select>';
+                }
+                if(td.url){
+                    if(val) {
+                        $.each(val,function(i,o){
+                            h+='<option value="'+o.id+'" selected>'+o.text+'</option>';
+                        });
+                       
+                    }
+                   
+                    var free = (td.free_text) ? ",free_text:1" : "";
+                    
+                    return h+"</select><script>$(function(){$('#"+unique+"').keyword({url:'"+td.url+"',post_key:'query'"+free+"})});</script>";
+                }
+             
+                $.each(td.options,function(n,o){
+                    var selected = (val && val.values && val.values.indexOf(o.value)>=0) ? 'selected' : '';
+                    var value = (typeof o.value !== 'undefined') ? o.value : '';
+                    h+='<option value="'+value+'" '+selected+'>'+o.label+'</option>';
+                });
+                return h+'</select>';
             case 'multiple':
             	var ids=[];
                 $.each(val,function(q,id){ids.push(id.id)});
@@ -487,6 +770,7 @@ var $rend = {
 					var value = (typeof o.id !== 'undefined') ? o.id : '';
 					h+='<option value="'+value+'" '+selected+'>'+o.text+'</option>';
 				});
+				
 				if(td.selectAjax) {
 					setTimeout(function(){
 						
@@ -497,18 +781,137 @@ var $rend = {
                 return h+'</select>';
             case 'list':
                 h+='<select id="'+name+'"data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' '+cl+'>';
-                var valueId = val;
+                //var valueId = val;
+                var valueId = (val.id) ? val.id : val;
+             
                 $.each(td.options,function(n,o){
-                    var value = (typeof o.value !== 'undefined') ? o.value : n;
+                    //var value = (typeof o.value !== 'undefined') ? o.value : n;
+                    var value = (typeof o.id !== 'undefined') ? o.id : n;
                     var selected = (value==valueId) ? 'selected' : '';
                     if(!valueId) selected=(value==td.default) ? 'selected' : '';
                     h+='<option value="'+value+'" '+selected+'>'+o.text+'</option>';
                 });
                 return h+"</select>";
+            case 'timeline':
+            	h+='<div class="input center"><select onchange="$rend.timelineChange(this)" id="'+name+'"data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' >';
+                //var valueId = val;
+                var valueId = (val.id) ? val.id : val;
+             	td.options.push({id:'cancel',"text":"Canceled"})
+                $.each(td.options,function(n,o){
+                    //var value = (typeof o.value !== 'undefined') ? o.value : n;
+                    var value = (typeof o.id !== 'undefined') ? o.id : n;
+                    var selected = (value==valueId) ? 'selected' : '';
+                    if(!valueId) selected=(value==td.default) ? 'selected' : '';
+                    h+='<option value="'+value+'" '+selected+'>'+o.text+'</option>';
+                });
+                
+			   return h+'</select><br><br><table class="timeline">'+self.timeline(td.options,val)+"</table></div>";
+            case 'listBasic':
+                h+='<select id="'+name+'"data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' '+cl+'>';
+                var valueId = val;
+                $.each(td.options,function(n,o){
+                    var value = (typeof o.id !== 'undefined') ? o.id : n;
+                    var selected = (value==valueId) ? 'selected' : '';
+                    var txt = (o.text) ? o.text : o.id.split('_').join(' ');
+                    if(!valueId) selected=(value==td.default) ? 'selected' : '';
+                    h+='<option value="'+value+'" '+selected+'>'+txt+'</option>';
+                });
+                return h+"</select>";
+            
+            
             default:
                 return td.html;
         }
     },
+    timeline:function(options,values){
+    	
+    	//{"event":{"created":"2022-01-01","user":{"id":"id","text":"User"}}}
+    	/*values = {
+    		active:"estimate",
+    		created:{"created":"2022-01-01","user":{"id":"id","text":"User"}},
+    		estimate:{"created":"2022-01-01","user":{"id":"id","text":"User"}},
+    		cancel:{"created":"2022-01-01","user":{"id":"id","text":"User"}}
+    	};*/
+    	/*values = {
+    		text:"new",
+    		id:"new",
+    		feed:{
+    			"new":{"updated":"2022-01-01","user":{"id":"id","text":"User"}}
+    		}
+    	};*/
+    	
+    	var h = '<thead><tr>';
+    	var b = "";
+    	if(!values || !values.id) values = {id:options[0].id,text:options[0].text};
+    	if(!values.feed || !values.feed[values.id])  {
+    		values.feed = {};
+    		values.feed[values.id] = {updated:this.date.stamp(),user:{text:config.user.text,id:config.user.id}};
+    	}
+    	var canceled = (values.id=="cancel") ? 1 : 0;
+    	var canceledSet = 0;
+    	var active = 1;
+    	
+    	var self = this;
+    	$(options).each(function(i,o){
+    		var next = options[i+1];
+    		var active = (next && next.id && values[next.id]) ? 0 : 1;
+    		var txt = (o.text) ? o.text : o.id.split("_").join(" ");
+    		var id = (o.id) ? o.id : o.id.split(" ").join("_");
+    		var selected = (values && values.id && values.id==id) ? "selected" : ""; 
+    		
+    		
+    		if(values.feed[id]) {
+    			var cl = (active && !canceled) ? "active" : "done";
+    			var content = self.date.get(values.feed[id].updated)+'<br>'+values.feed[id].user.text;
+    			content = "";
+    			h+='<td class="'+cl+' '+id+'">'+txt+'<span class="m-content">'+content+'</span></td>';
+    			b+='<td class="'+cl+' '+id+'">'+content+'</td>';
+    		} /*else if(canceled && !canceledSet) {
+    			var content = values.feed["cancel"].updated+'<br>'+values.feed["cancel"].user.text;
+    			content = "";
+    			h+='<td class="canceled '+id+'">Canceled</td><td>'+txt+'<span class="m-content">'+content+'</span></td>';
+    			b+='<td class="canceled" '+id+'>'+content+'</td><td></td>';
+    			canceledSet = 1;
+    		} */ else {
+    			h+='<td class="'+id+'">'+txt+'</td>';
+    			b+='<td class="'+id+'"></td>';
+    		}
+    	});
+    	
+    
+    	return  h+"</tr></thead><tbody><tr>"+b+"</tr></tbody>";
+    },
+    timelineChange:function(t){
+    	var id = $(t).parent().parent().data("id");
+    	//$(t).val();
+    	var values ={id:$(t).val(),text:$(t).find("option:selected").html()};
+    	var options = [];
+    	$(t).find("option").each(function(){
+    		options.push({id:$(this).val(),text:$(this).html()});
+    	});
+    	
+    	$(t).parent().find(".timeline").html(this.timeline(options,values));
+    },
+    rendAttr:function(o){
+		var attr = "";
+		$.each(o,function(k,b){
+			attr+=" data-"+k+"='"+b+"'";
+		});
+		
+		return attr;
+	},
+	getAttr:function(el){
+		var o = {};
+		var tag = $(el).prop("tagName");
+		for (const a of $(el)[0].attributes) {
+			if(a.name.indexOf("data-")>=0){
+				k = a.name.slice(5);
+				o[k] = a.value;
+			}
+		 
+		}
+		return o;
+	},
     tempValue:function(s,o){
         var self = this;
         s = s.replace('{{','').replace('}}','');
@@ -682,33 +1085,38 @@ var $rend = {
         });
         return obj;
     },
-    tableBasic:function(obj,vars,key) {
+    tableBasic:function(obj,vars,key,tbody) {
 		var self = this;
 		if(!key) key = "id"; 
 		if(!obj.length)  return  "<table><tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody></table>";
-		var h = "<table><tbody>";
+		var h = "<table><thead><tr>";
+		var body = "<tbody>";
 		if(!vars){
+			$.each(obj[0],function(k,o) {h+="<th>"+k.split("_").join(" ")+"</th>";});
+			h+="</tr></thead>";
 			$.each(obj,function(i,o) {
-				var id = (o[key]) ? "data-id='"+o[key]+"'" : i;
-				h+="<tr "+id+" data-index='"+i+"'>";
+				body += (o[key]) ? "<tr data-id='"+o[key]+"' data-index='"+i+"'>" : "<tr data-id='"+i+"' data-index='"+i+"'>";
 				$.each(o,function(i,v){
-					h+= (v!=null) ? "<td>"+v+"</td>" : "<td></td>";
+					body+= (v!=null) ? "<td>"+v+"</td>" : "<td></td>";
 				});
-				h+="</tr>";
+				body+="</tr>";
 			});
 		} else {
+			$.each(vars,function(n,o){ 
+				h+=(o.thead) ? "<th>"+o.thead+"</th>" : "<th>"+o.id.split("_").join(" ")+"</th>"; 
+			});
+			h+="</tr></thead>";
 			$.each(obj,function(i,o) {
-				var id = (o[key]) ? "data-id='"+o[key]+"'" : i;
-				h+="<tr "+id+" data-index='"+i+"'>";
+				body += (o[key]) ? "<tr data-id='"+o[key]+"' data-index='"+i+"'>" : "<tr data-id='"+i+"' data-index='"+i+"'>";
 				$.each(vars,function(n,k){
 					var val = self._get(k,o);
-					h+= (val!=null) ? "<td>"+val+"</td>" : "<td></td>";
+					body+= (val!=null) ? "<td>"+val+"</td>" : "<td></td>";
 				});
-				h+="</tr>";
+				body+="</tr>";
 			});
 		}
-		return h+"</tbody></table>";
-	},
+		return (tbody) ? body+"</tbody>" : h+body+"</tbody></table>";
+    },
     _get:function(str,obj){
         if(!str) return '';
         obj = (obj) ? obj : window;
@@ -735,25 +1143,36 @@ var $rend = {
       		return this.date.get();
         },
         unix:function(d){
-            return (d) ?  new Date(d+"Z").now() : new Date().now();
+        	d = this.dateObj(d);
+            return d.now();
         },
-        get:function(d){
-        	d = (d) ? new Date(d+"Z") : new Date();
-            return this.format.month(d.getMonth())+'/'+this.format.date(d.getDate())+"/"+d.getFullYear();
+        get:function(d,s){
+        	if(typeof s == "undefined") s = "/";
+        	d = this.dateObj(d);
+            return this.format.month(d.getMonth())+s+this.format.date(d.getDate())+s+d.getFullYear();
         },
         getMonth:function(d){
-			d = (d) ? new Date(d+"Z") : new Date();
+			d = this.dateObj(d);
             return this.format.month(d.getMonth())+"/"+d.getFullYear().toString().substr(-2);
         },
         getTime:function(d){
-        	d = (d) ? new Date(d+"Z") : new Date();
+        	d = this.dateObj(d);
             return this.format.month(d.getMonth())+'/'+this.format.date(d.getDate())+"/"+d.getFullYear()+" "+d.getHours()+":"+d.getMinutes();
         },
         stamp:function(d){
-        	d = (d) ? new Date(d+"Z") : new Date();
-            return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()+"T"+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
+        	d = this.dateObj(d);
+            return d.getUTCFullYear()+"-"+this.format.month(d.getUTCMonth())+"-"+this.format.date(d.getUTCDate())+"T"+this.format.date(d.getUTCHours())+":"+this.format.date(d.getUTCMinutes())+":00";
+        },
+        dateObj:function(d,loc){
+        	if(!d) return new Date();
+        	date = new Date(d);
+        	if (!date.getTime()) date = new Date(Date.parse(d.split("-").join("/")));
+        	//if(!loc) date = date.toUTCString();
+        	return date;
         },
         format:{
+        	days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+			months:['January','February','March','April','May','June','July','August','September','October','November','December'],
         	month:function(m) {
         		m++;
         		return (m.toString().length==1) ? '0'+m : m;
@@ -762,6 +1181,15 @@ var $rend = {
         		return (d.toString().length==1) ? '0'+d : d;
         	}
         },
+        timeFormat:function(d){
+			var hours = d.getHours();
+			var sym = "AM";
+			if(hours>12) {
+				hours = hours-12;
+				sym= "PM";
+			}
+			return hours+":"+d.getMinutes()+" "+sym;
+		},
         timeFromNow:function (d) {
 
 			// Get timestamps
@@ -807,13 +1235,20 @@ var $rend = {
 				// Seconds
 				tfn.unitOfTime = 'minutes';
 				tfn.time = Math.floor(difference / 60);
+				if(!tfn.time) tfn.time = 1;
 			}
 			//alert(JSON.stringify(tfn));
 			// Return time from now data
 			if(tfn.time<2) tfn.unitOfTime = tfn.unitOfTime.slice(0, -1);
 			return (tfn.when=='past') ? tfn.time+' '+tfn.unitOfTime+' ago' : 'In '+tfn.time+' '+tfn.unitOfTime;
 	
-		}
+		},
+		tzAbbrOffsets:{  acdt: 37800,  acst: 34200,  addt: -7200,  adt: -10800,  aedt: 39600,  aest: 36000,  ahdt: -32400,  ahst: -36000,  akdt: -28800,  akst: -32400,  amt: -13840,  apt: -10800,  ast: -14400,  awdt: 32400,  awst: 28800,  awt: -10800,  bdst: 7200,  bdt: -36000,  bmt: -14309,  bst: 3600,  cast: 34200,  cat: 7200,  cddt: -14400,  cdt: -18000,  cemt: 10800,  cest: 7200,  cet: 3600,  cmt: -15408,  cpt: -18000,  cst: -21600,  cwt: -18000,  chst: 36000,  dmt: -1521,  eat: 10800,  eddt: -10800,  edt: -14400,  eest: 10800,  eet: 7200,  emt: -26248,  ept: -14400,  est: -18000,  ewt: -14400,  ffmt: -14660,  fmt: -4056,  gdt: 39600,  gmt: 0,  gst: 36000,  hdt: -34200,  hkst: 32400,  hkt: 28800,  hmt: -19776,  hpt: -34200,  hst: -36000,  hwt: -34200,  iddt: 14400,  idt: 10800,  imt: 25025,  ist: 7200,  jdt: 36000,  jmt: 8440,  jst: 32400,  kdt: 36000,  kmt: 5736,  kst: 30600,  lst: 9394,  mddt: -18000,  mdst: 16279,  mdt: -21600,  mest: 7200,  met: 3600,  mmt: 9017,  mpt: -21600,  msd: 14400,  msk: 10800,  mst: -25200,  mwt: -21600,  nddt: -5400,  ndt: -9052,  npt: -9000,  nst: -12600,  nwt: -9000,  nzdt: 46800,  nzmt: 41400,  nzst: 43200,  pddt: -21600,  pdt: -25200,  pkst: 21600,  pkt: 18000,  plmt: 25590,  pmt: -13236,  ppmt: -17340,  ppt: -25200,  pst: -28800,  pwt: -25200,  qmt: -18840,  rmt: 5794,  sast: 7200,  sdmt: -16800,  sjmt: -20173,  smt: -13884,  sst: -39600,  tbmt: 10751,  tmt: 12344,  uct: 0,  utc: 0,  wast: 7200,  wat: 3600,  wemt: 7200,  west: 3600,  wet: 0,  wib: 25200,  wita: 28800,  wit: 32400,  wmt: 5040,  yddt: -25200,  ydt: -28800,  ypt: -28800,  yst: -32400,  ywt: -28800,  a: 3600,  b: 7200,  c: 10800,  d: 14400,  e: 18000,  f: 21600,  g: 25200,  h: 28800,  i: 32400,  k: 36000,  l: 39600,  m: 43200,  n: -3600,  o: -7200,  p: -10800,  q: -14400,  r: -18000,  s: -21600,  t: -25200,  u: -28800,  v: -32400,  w: -36000,  x: -39600,  y: -43200,  z: 0}
+		
+    },
+    uniqueId: function(){
+        n = Math.random().toString(36).substring(4);
+        return n+String(Date.now());
     },
 }
     

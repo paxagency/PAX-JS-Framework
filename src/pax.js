@@ -12,14 +12,19 @@ $pax.prototype = {
     appGlob:[],
     appInit:[],
     el:{routes:'#routes'},
+    loadTemplate:`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute; left:50%; top:50%;max-width:50px; margin-left:-25px;margin-top:-125px; display: block; shape-rendering: auto;" width="100px" height="100px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+		<circle cx="50" cy="50" fill="none" stroke="blue" stroke-width="4" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
+  		<animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform></circle></svg>`,
     init:function(o){
         var self = this;
         //Set templates
         $('template').each(function(){
             var key = $(this).attr('pax');
             var template = $(this).html();
+            
             if(typeof key !== 'undefined') {
             	var url = key.split('_').join('/');
+            	key = key.split('-').join('_');
             	if(url=="index") url = "";
                 if(!self.apps[key]) self.apps[key] = {};
 				if(!self.apps[key].template) self.apps[key].template = template;
@@ -100,6 +105,7 @@ $pax.prototype = {
     setLoad:function(key,k,e){
     	var app = this.apps[key];
     	app.load[k].data = e;
+    	if(app.load[k].setData) app.data[k] = (e.hits) ? e.hits : e;
 		if(app.load[k].loaded) this.call(e,app.load[k].loaded);
     },
     call:function(v,f){
@@ -139,10 +145,11 @@ $pax.prototype = {
     renderChildren:function(key){
         var self = this;
         var app = this.apps[key];
-       
+        
         $(app.root).find("[pax]").each(function(i,o){
             var tag = $(o).prop("tagName");
             var id = $(o).attr('pax');
+            if(id=="") return false;
             
             app.el[id] = $(o);
             if(tag=='template') return false;
@@ -154,6 +161,7 @@ $pax.prototype = {
             if($(o).attr('pax-type')) tag = $(o).attr('pax-type').toUpperCase();
             app.tag[id] = tag;
             var html = $(o).html();
+            if(!app.templates[id] && html.indexOf('{{') >= 0)  app.templates[id] = html;
             switch(tag){
                 case 'UL':case 'OL':
                     if(!app.templates[id]) app.templates[id] = '<li data-index="{{index}}">{{value}}</li>';
@@ -212,7 +220,23 @@ $pax.prototype = {
                 break;
                 case 'TABLE':
                     var opt = (app.templates[id]) ? app.templates[id] : 0;
-                    $(app.el[id]).html(self.table(app.data[id],opt));
+                    var config = (app.config && app.config[id]) ? app.config[id] :{};
+                    $(app.el[id]).html(self.table(app.data[id],opt,config));
+                break;case 'TBODY':
+                    if(!app.templates[id]) {
+                    	if(app.data[id]) {
+                    		app.templates[id] = '<tr data-index="{{index}}" data-id="{{this.id}}">'
+                    			$.each(app.data[id][0],function(k,o){app.templates[id]+='<td>{{this.'+k+'}}</td>'})
+                    		app.templates[id] += '</tr>';
+                    	} else {
+                    		app.templates[id] = '<tr data-index="{{index}}" data-id="{{this.id}}"><td>{{this.name}}</td></tr>';
+                    	}
+                    }
+                    if(app.data[id]) {
+                        self.render(key,id);
+                    } else {
+                        app.data[id] = [];
+                    }
                 break;case 'MULTIPLE':
                     if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</option>";
                     if(app.data[id]) {
@@ -250,10 +274,10 @@ $pax.prototype = {
        
         var tag = app.tag[id];
         var val = app.data[id];
+        if(app.filters[id]) val = app.filters[id](val);
         var h = '';
        
         if(!val) val = '';
-        
         if(Array.isArray(val)){
             
             if(!app.templates[id]) {
@@ -261,6 +285,7 @@ $pax.prototype = {
             } else {
                 $.each(app.data[id],function(n,li){
                     var s = app.templates[id].valueOf().toString();
+                     
                     s = s.split("{{index}}").join(n);
                     s = s.split("{{value}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
@@ -280,7 +305,7 @@ $pax.prototype = {
                 h+=s;
             }
         } else {
-            var str = app.data[id];
+            var str = val;
             if(app.templates[id]) {
                 var s = app.templates[id].valueOf().toString();
                 s = s.split("{{this").join('{{'+key+'.data');
@@ -295,11 +320,23 @@ $pax.prototype = {
         return h;
     },
     rendTemplate:function(key){
-        if(!this.apps[key].template) return '';
-        var s = this.apps[key].template.valueOf().toString();
-        if(s.indexOf('{{') == -1) return s;
-        s = s.split("this.").join(key+'.data.');
-        return this.tempString(s,key);
+        if(!this.apps[key].template || this.apps[key].template=="" || this.apps[key].template.indexOf('{{') == -1) return this.apps[key].template;
+        var template = $($.parseHTML("<div>"+this.apps[key].template+"</div>"));
+    	var keys = {};
+    	//Temporarily Remove children
+    	template.find("[pax]").each(function(){
+    		var id = Math.random().toString(36).substring(4);
+    		$(this).after(id).remove();
+    		keys[id] = $(this)[0].outerHTML;
+    	});
+    	
+    	var s = template.html().valueOf().toString();
+    	s = s.split("this.").join(key+'.data.');
+        s = this.tempString(s,key);
+    	$.each(keys,function(k,h){
+    		s = s.replace(k,h);
+    	});
+    	return s;
     },
     tempString:function(s,key,obj,id,n) {
         var self = this;
@@ -310,13 +347,28 @@ $pax.prototype = {
     tempValue:function(s,key,obj,id,n){
         var self = this;
         s = s.replace('{{','').replace('}}','').replace('()','');
+        fun = s.split("(");
+        if(fun[1]) s = fun[0];
         s = s.split("||");
         var v = eval("this.apps."+s[0].trim());
+       
         if(typeof v =='function') {
-            v = (typeof n!='undefined') ?  v(n,obj) : v(obj);
-        } 
-        if(s[1] && !v) v = s[1].trim();
+        	if(fun[1]) {
+        		
+        		fun[1] = fun[1].replace(')','');
+        		var con = (typeof n!='undefined') ? key+'.data.'+id+'['+n+']' : key+'.data.'+id;
+        		fun[1] =  fun[1].split("this").join(con);
+        		var vl = eval("this.apps."+fun[1].trim());
+        		v = v(vl);
+        	} else {
+        		v = (typeof n!='undefined') ?  v(n,obj) : v(obj);
+        	}
+        }
+        if(s[1] && v==undefined) v = s[1].trim();
         if(this.apps[key].filters[id]) v = this.apps[key].filters[id](v);
+        
+        if(typeof v === 'object' && v && v.text) v = v.text;
+		if(typeof v === 'object' && v && v[0] && v[0].text) v = v.map(u => u.text).join(', ');
         return (typeof v != 'undefined') ? v : '';
     },
     setData:function(key,id) {
@@ -487,7 +539,7 @@ $pax.prototype = {
         var route2=0;
         var _path= '';
         var _path2= '';
-        
+        var self = this;
         for (var i=0, total=this.url.length; i < total; i++) {
             _path+=(i) ? '/'+this.url[i] : this.url[i];
             _path2+=(i) ? "_"+this.url[i] : this.url[i];
@@ -498,6 +550,7 @@ $pax.prototype = {
         if(this.routes[route]) {
             if(this.routeInit) this.routeInit();
             var key = this.routes[route];
+            $(this.apps[key].root).html(self.loadTemplate);
             this.activeRoute = this.routes[route];
             this.loadApps([key]);
             
@@ -537,13 +590,23 @@ $pax.prototype = {
         }
     },
     _get:function(str,obj){
+    	
 		if(!str) return '';
 		str = str.split("[").join(".").split("]").join("").replace('()','');
 		obj = (obj) ? obj : window;
-		if(str.indexOf(".")<0) return (typeof obj[str] !== "undefined") ? obj[str] : '';
-		return str.split('.').reduce(function (o,v) {
-			return o ? o[v] : '';
-		}, obj);
+		
+		if(str.indexOf(".")<0) {
+			var val= (typeof obj[str] !== "undefined") ? obj[str] : '';
+			if(typeof val === 'object' && val.text) val = val.text;
+			if(typeof val === 'object' && val[0] && val[0].text) val = val.map(u => u.text).join(', ');
+		} else {
+			var val = str.split('.').reduce(function (o,v) {
+				return o ? o[v] : '';
+			}, obj);
+			if(typeof val === 'object' && val.text) val = val.text;
+			if(typeof val === 'object' && val[0] && val[0].text) val = val.map(u => u.text).join(', ');
+		}
+		return val;
 	},
     _set:function(path,value,obj,first){
         if(!path) return '';
@@ -576,18 +639,22 @@ $pax.prototype = {
         });
         return o;
     },
-    table:function(obj,vars,key,tbody) {
+    table:function(obj,vars,config,key,tbody) {
         var self = this;
 		if(!key) key = "id"; 
 		if(!obj.length)  return  "<table><tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody></table>";
 		var h = "<table><thead><tr>";
 		var body = "<tbody>";
 		if(!vars){
-			$.each(obj[0],function(k,o) {h+="<th>"+k.split("_").join(" ")+"</th>";});
+			keys = [];
+			$.each(obj[0],function(k,o) {h+="<th>"+k.split("_").join(" ")+"</th>",keys.push(k);});
 			h+="</tr></thead>";
 			$.each(obj,function(i,o) {
 				body += (o[key]) ? "<tr data-id='"+o[key]+"' data-index='"+i+"'>" : "<tr data-id='"+i+"' data-index='"+i+"'>";
-				$.each(o,function(i,v){
+				$.each(keys,function(i,k){
+					var v = o[k];
+					if(typeof v === 'object' && v.text) v = v.text;
+					if(typeof v === 'object' && v[0] && v[0].text) v = v.map(u => u.text).join(', ')
 					body+= (v!=null) ? "<td>"+v+"</td>" : "<td></td>";
 				});
 				body+="</tr>";
@@ -598,9 +665,11 @@ $pax.prototype = {
 			});
 			h+="</tr></thead>";
 			$.each(obj,function(i,o) {
-				body += (o[key]) ? "<tr data-id='"+o[key]+"' data-index='"+i+"'>" : "<tr data-id='"+i+"' data-index='"+i+"'>";
+				var cl = (config.cl) ? 'onclick="'+config.cl+'(this)"' : '';
+				body += (o[key]) ? "<tr data-id='"+o[key]+"' data-index='"+i+"' "+cl+">" : "<tr data-id='"+i+"' data-index='"+i+"' "+cl+">";
 				$.each(vars,function(n,k){
-					var val = self._get(k,o);
+					var val = self._get(k.id,o);
+					if(k.filter) val = k.filter(val,o);
 					body+= (val!=null) ? "<td>"+val+"</td>" : "<td></td>";
 				});
 				body+="</tr>";

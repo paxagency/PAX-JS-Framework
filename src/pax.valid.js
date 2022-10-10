@@ -35,7 +35,8 @@ $valid = //var $render = function(type) {};
 		numbers:[48,49,50,51,52,53,54,55,56,57],
 		onlycharacters:[81,87,69,82,84,89,85,73,79,80,65,83,68,70,71,72,74,75,76,90,88,67,86,66,78,77],
 	    alphaNumeric:[49,50,51,52,53,54,55,56,57,48,81,87,69,82,84,89,85,73,79,80,65,83,68,70,71,72,74,75,76,90,88,67,86,66,78,77],
-		alphaNumericDash:[49,50,51,52,53,54,55,56,57,48,81,87,69,82,84,89,85,73,79,80,65,83,68,70,71,72,74,75,76,90,88,67,86,66,78,77,189]
+		alphaNumericDash:[49,50,51,52,53,54,55,56,57,48,81,87,69,82,84,89,85,73,79,80,65,83,68,70,71,72,74,75,76,90,88,67,86,66,78,77,189],
+		alphaNumericSlash:[49,50,51,52,53,54,55,56,57,48,81,87,69,82,84,89,85,73,79,80,65,83,68,70,71,72,74,75,76,90,88,67,86,66,78,77,186,189,190,191]
 	},
     init: function(el) {
 		this.el = (el) ? el : this.el;
@@ -86,7 +87,7 @@ $valid = //var $render = function(type) {};
     addKey: function(el) {
         var self = this;
 		var vkey = $(el).attr("vkey");
-
+		
 		if(vkey=='phone') {
 			self.phone(el);
 			$(el).on("keyup",function(e) {	self.phone(this);	});
@@ -118,7 +119,7 @@ $valid = //var $render = function(type) {};
 		}
   		$(el).on("keydown",function(e) {
 			var key = e.keyCode ? e.keyCode : e.which;
-			
+			//alert(key);
 			if(key==8) return true;
 			if(vkey=='alphaNumericDash') if(e.shiftKey || e.altKey) return false;
 			if(vkey=='decimal') {
@@ -254,13 +255,24 @@ $valid = //var $render = function(type) {};
         var self = this;
         if(v=='' || !v) return '';
         if($(t).attr('vkey')=='money') return parseFloat(v.split(',').join(''));
-        //if($(t).attr('vkey')=='datetime')) return self.stamp(v);
+        if($(t).attr('vkey')=='datetime' || $(t).attr('data-type')=="date" || $(t).attr('data-type')=="datetime") return self.stamp(v);
         if($(t).attr('vkey')=='phone') return parseInt(v.replace(/[^0-9]/g, ''));
         return v;
     },
+    
     stamp:function(d){
-		d = (d) ? new Date(d) : new Date();
-		return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()+"T"+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds();
+    	
+		d = (d) ? new Date(Date.parse(d.split("-").join("/"))) : new Date();
+		
+		var t = {
+			"month":(d.getUTCMonth()+1).toString(),
+			"date":d.getUTCDate().toString(),
+			"hours":d.getUTCHours().toString(),
+			"minutes":d.getUTCMinutes().toString(),
+			"seconds":(d.getUTCSeconds()+1).toString()
+		}
+		$.each(t,function(i,o){if(o.length==1) t[i] = "0"+t[i];});
+		return d.getUTCFullYear()+"-"+t.month+"-"+t.date+"T"+t.hours+":"+t.minutes+":"+t.seconds;
 	},
     getData:function(t){
         var self = this;
@@ -289,23 +301,39 @@ $valid = //var $render = function(type) {};
                     if(!val || val=='') return {}; 
                     var txt = $(t).find('option:selected').html(); 
                     if($(t).attr('data-type')=='listBasic') return val;
-                    if(!txt) txt=null; return o[name]= (self.nested) ? {id:val,text:txt} : val;
+                    var ob = self.getAttr($(t).find('option:selected'));
+                    var ret = {id:val,text:txt};
+                    $.each(ob, function(q,r){ret[q]=r;});
+                    if(!txt) txt=null; return o[name]= (self.nested) ? ret : val;
 				case 'MULTIPLE':
-                    
 					if($(t).attr('data-type')=='multiBasic') {
                         o[name] = $(t).val();
                     } else {
                         if(!o[name]) o[name]=[];
 						$("option:selected", t).each(function(){
                             var v = $(this).val();
-							if(v && v!='' && v!='0') o[name].push({id:v,text:$(this).html()});
+                             var ob = self.getAttr($(this));
+                             var ret = {id:v,text:$(this).html()}
+                             $.each(ob, function(q,r){ret[q]=r;});
+							if(v && v!='' && v!='0') o[name].push(ret);
 						});
                     }
 					return o[name];
-					
 				default:break;
 		  }
     },
+    getAttr:function(el){
+		var o = {};
+		var tag = $(el).prop("tagName");
+		for (const a of $(el)[0].attributes) {
+			if(a.name.indexOf("data-")>=0){
+				k = a.name.slice(5);
+				if(k!="id" && k!="text") o[k] = a.value;
+			}
+		 
+		}
+		return o;
+	},
 	dataOLD:function(){
 		var obj = {};
 		var self = this;
