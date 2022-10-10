@@ -45,7 +45,7 @@ $pax.prototype = {
                 } 
             }
         }); 
-      
+      	
         this.setRouter();
         //load gobal apps, then non routed apps
         this.loadApps(self.appGlob,function(){
@@ -67,40 +67,37 @@ $pax.prototype = {
         o.change = (o.change) ? o.change : {};
         return o;
     },
-    loadApps:function(array,fun){
-        if(!array || !array.length) {if(fun) fun();return;}
-       	var self = this;
-       	var total = array.length-1;
-       	var index = 0;
-       	$.each(array,function(i,o){
-       		(i==total) ? self.loadApp(o,fun) : self.loadApp(o);
-       	});
-    },
-    loadApp:function(key,fun){
-    	var requests=[];
+
+    loadApps:function(array, fun){
     	var self = this;
-    	var app = this.apps[key];
-    	if(app.init) app.init();
-    	var total = (app.load) ? Object.keys(app.load).length : 0;
-    	if(!total) {
-			self.initApp(key);
-			if(fun) fun();
-			return false;
-		}
-    	var index = 0;
-		$.each(app.load,function(k,o){
-			if(o.url) {
-				 var query = (o.query) ? o.query : 0;
-				 self.ajax(o.url,query,function(e){
-				 	self.setLoad(key,k,e);
-				 	index++;
-				 	if(index==total){
-				 		self.initApp(key);
-						if(fun) fun();
-				 	}
-				 })
+		var total = array.length;
+		var index = 0;
+		$.each(array,function(i,key){
+			var app = self.apps[key];
+			if(app.init) app.init();
+			app.load_total = (app.load) ? Object.keys(app.load).length : 0;
+			app.load_index = 0;
+			if(!app.load_total) {
+				self.initApp(key);
+				index++;
+				if(index==total && fun) fun();
 			}
-		});	
+			$.each(app.load,function(k,o){
+				if(o.url) {
+					 var query = (o.query) ? o.query : 0;
+					 self.ajax(o.url,query,function(e){
+						self.setLoad(key,k,e);
+						app.load_index++;
+						if(app.load_index==app.load_total) {
+							self.initApp(key);
+							index++;
+						}
+						if(index==total && app.load_index==app.load_total && fun) fun();
+					 });
+				}
+			});	
+		})
+
     },
     setLoad:function(key,k,e){
     	var app = this.apps[key];
