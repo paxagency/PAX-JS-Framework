@@ -47,6 +47,7 @@ $pax.prototype = {
         }); 
       	
         this.setRouter();
+      
         //load gobal apps, then non routed apps
         this.loadApps(self.appGlob,function(){
         	self.loadApps(self.appInit,function(){
@@ -72,6 +73,7 @@ $pax.prototype = {
     	var self = this;
 		var total = array.length;
 		var index = 0;
+		if(!array.length && fun) fun();
 		$.each(array,function(i,key){
 			var app = self.apps[key];
 			if(app.init) app.init();
@@ -142,7 +144,6 @@ $pax.prototype = {
     renderChildren:function(key){
         var self = this;
         var app = this.apps[key];
-        
         $(app.root).find("[pax]").each(function(i,o){
             var tag = $(o).prop("tagName");
             var id = $(o).attr('pax');
