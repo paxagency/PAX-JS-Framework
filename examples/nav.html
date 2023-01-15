@@ -12,14 +12,14 @@
 		</style>
     </head>
     <body>
-    	<div id="header" pax='header'>
-			<ul pax='nav'></ul>
+    	<div id="header" app='header'>
+			<ul child='nav'></ul>
         </div>
         <div id='routes'>
-        	<template pax="index"><h1>Home</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></template>
-        	<template pax="about"><h1>About</h1><p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</template>
-        	<template pax="contact"><h1>Contact</h1><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco</p></template>
-        	<template pax="login"><h1>Login</h1><p>Duis aute irure dolor in reprehenderit in voluptate</p></template>
+        	<template app="index"><h1>Home</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></template>
+        	<template app="about"><h1>About</h1><p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</template>
+        	<template app="contact"><h1>Contact</h1><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco</p></template>
+        	<template app="login"><h1>Login</h1><p>Duis aute irure dolor in reprehenderit in voluptate</p></template>
         </div>
     </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -27,6 +27,7 @@
 <script>
 	pax.routeHash = true;
     app.header = {
+    	global:1,
     	templates:{
     		nav:"<li class='{{this.active}}'><a onclick='app.header.setActive({{index}})'>{{this.label}}</a></li>"
     	},

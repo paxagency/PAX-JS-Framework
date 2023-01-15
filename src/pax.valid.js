@@ -246,17 +246,35 @@ $valid = //var $render = function(type) {};
                 o[name].push(self.getData(this));
             } else  {
             	//if($(this).attr('vreq') && val=="") return 
-                o[name] = self.getData(this);
+            	var value = self.getData(this);
+            	
+                if(value!="REMOVE COMPLETELY") o[name] = value;
             }
 		});
 		return o;
     },
     dataFormat:function(t,v){
+    	
         var self = this;
-        if(v=='' || !v) return '';
+        if(v=='' || !v) {
+        	 if($(t).attr('vkey')=='datetime' || $(t).attr('data-type')=="date" || $(t).attr('data-type')=="datetime" || $(t).attr('data-type')=="dateMonth") return "null";
+        	return '';
+        }
         if($(t).attr('vkey')=='money') return parseFloat(v.split(',').join(''));
-        if($(t).attr('vkey')=='datetime' || $(t).attr('data-type')=="date" || $(t).attr('data-type')=="datetime") return self.stamp(v);
+        if($(t).attr('data-type')=="dateMonth" && v!="") {
+        	v = String(v);
+        	var sp = v.split("/");
+        	v = sp[0]+"/01/"+sp[1]+"T12:00:00";
+        }
+        
+        if($(t).attr('vkey')=='datetime' || $(t).attr('data-type')=="date" || $(t).attr('data-type')=="datetime" || $(t).attr('data-type')=="dateMonth") {
+			return self.stamp(v);
+        }
         if($(t).attr('vkey')=='phone') return parseInt(v.replace(/[^0-9]/g, ''));
+        if(($(t).data('type')=='files' || $(t).data('type')=='json' || $(t).data('type')=='images')) {
+        	if(v.indexOf("{")<0 && v!="") return v;
+        	return (typeof v =="string" && v.indexOf("{")>=0) ? JSON.parse(v) : "REMOVE COMPLETELY";
+        }
         return v;
     },
     
@@ -309,6 +327,7 @@ $valid = //var $render = function(type) {};
 					if($(t).attr('data-type')=='multiBasic') {
                         o[name] = $(t).val();
                     } else {
+                    	
                         if(!o[name]) o[name]=[];
 						$("option:selected", t).each(function(){
                             var v = $(this).val();
@@ -317,6 +336,7 @@ $valid = //var $render = function(type) {};
                              $.each(ob, function(q,r){ret[q]=r;});
 							if(v && v!='' && v!='0') o[name].push(ret);
 						});
+						if(!o[name].length) o[name] = "null";
                     }
 					return o[name];
 				default:break;

@@ -51,7 +51,6 @@ var $rend =
     table:function(obj,vars,opt,edit) {
         var self = this;
         if(!opt) opt = {};
-        if(obj.length==0)  return  "<tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody>";
         var h = "<thead><tr>";
       
         if(!vars){
@@ -68,6 +67,7 @@ var $rend =
                 	var label = (v.thead) ? v.thead : v.label;
                 	if(!v.label && v.id) label = v.id.split('_').join(' ');
                 	label = (label) ? label.split('.')[0] : "";
+                	
                 	var sort = (v.sort) ? "data-sort='"+v.sort+"'" : "";
                     h+="<th "+click+" data-id='"+v.id+"' data-index='"+k+"' "+sort+">"+label+"</th>";
                 }
@@ -75,6 +75,11 @@ var $rend =
         }
        
         h+="</tr></thead><tbody>";
+        if(!obj.length)  {
+        
+        	var message = (opt.no_message) ? "</tbody>" : "<tr id='tr-0'><th  colspan='100%' style='text-align:center;'>There are no results</th></tr></tbody>"; 
+        	return  h+message;
+		}
         var events = "";
         if(opt["on"]) {
         	$.each(opt["on"],function(event,method){
@@ -94,7 +99,7 @@ var $rend =
                 var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
                 
                 $.each(o,function(i,v){
-                    h+= (v!=null) ? "<td "+click+">"+v+"</td>" : "<td></td>";
+                    h+= (v!=null) ? "<td "+click+" data-id='"+i+"'>"+v+"</td>" : "<td></td>";
                 });
                 h+="</tr>";
             });
@@ -102,7 +107,9 @@ var $rend =
         } else {
         	if(!opt.trAttr) opt.trAttr = [];
            if(opt.setAttr)  $.each(vars,function(i,v){ if(v.id) opt.trAttr.push(v.id)});
-       
+           
+       		//if(!obj.length) return  h+"</tbody>";
+       		
             $.each(obj,function(i,o) {
            
                 var attr = '';
@@ -124,8 +131,8 @@ var $rend =
                     
                     var click = (opt['tdClick']) ? "onclick='"+opt['tdClick']+"(this)'" : '';
                     if(v['tdClick']) click="onclick='"+v['tdClick']+"(this)'";
-                    
-                    var val = (v.val) ? v.val : self._get(k,o);
+                  
+                    var val = (v.val) ? self.temp(v.val,o) : self._get(k,o);
                     if(v.key) val = v.key[val];
                     if(v.ids) {
                         $.each(v.ids,function(x,ids){
@@ -134,17 +141,37 @@ var $rend =
                     }
                     
                     if(v.call) val = self.call(val,v.call);
+                    
+                    if(!v.type) {
+                    	v.type = "text";
+                    	
+                    	if(val && val.constructor === Array)  v.type = "objects";
+                    	if(val && val.constructor === Object)  v.type = "object";
+                    	if(v.type=="text" && val && val[4]=="-"  && val[7]=="-" && val[10]=="T") v.type = "date";
+						//if(typeof val === 'string') 
+                    }
+                    var a_v =  "";
+                    var a_t =  "";
+                    if(opt["attributes"]) {
+                    	
+                    	var a_val = (typeof val === "object") ? JSON.stringify(val) : val;
+                    	a_v = (opt["attributes"]) ? "data-val='"+a_val+"'" : "";
+                   		 a_t = (opt["attributes"]) ? "data-type='"+v.type+"'" : "";
+                    
+                    }
+                    
 					if(v.type) val = self.filter(val,v.type);
 					if(edit) {
 						var e = {};
 						e[v.id] = val;
-						if(!v.type) v.type = "text";
+						
 						
 					    val=self.vewType(v,e);
 					}
 					
+					var d_id = (v.id) ? `data-id='${v.id}'` : '';
 					
-                    h+= (val!=null) ? "<td "+click+" "+attr+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
+                    h+= (val!=null) ? "<td "+click+" "+attr+" "+d_id+" "+a_v+" "+a_t+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
                 });
                 h+="</tr>";
             });
@@ -182,10 +209,20 @@ var $rend =
                             val+=" "+self._get(ids,o);
                         });
                     }
-                    
+                    if(!v.type) {
+                    	v.type = "text";
+                    	
+                    	if(val && val.constructor === Array)  v.type = "objects";
+                    	if(val && val.constructor === Object)  v.type = "object";
+                    	if(v.type=="text" && val && val[4]=="-"  && val[7]=="-" && val[10]=="T") v.type = "date";
+						//if(typeof val === 'string') 
+                    }
                     if(v.call) val = self.call(val,v.call);
 					if(v.type) val = self.filter(val,v.type);
-                    h+= (val!=null) ? "<td "+click+" "+attr+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
+					
+					var d_id = (v.id) ? `data-id='${v.id}'` : '';
+					
+                    h+= (val!=null) ? "<td "+click+" "+attr+" "+d_id+">"+val+"</td>" : "<td "+click+" "+attr+"></td>";
                 });
                 return h+="</tr>";
 
@@ -214,8 +251,14 @@ var $rend =
     	switch(type){
             case 'text':
             	return val;
+            case 'objects':
+            	return val.map(function(val){
+   					 return val.text;
+				}).join(",");
+            case 'object':
+            	return val.text || "";
             case 'image':
-            	return "<img src='"+self.fileServer+val+"'/>";
+            	return "<img src='"+val+"'/>";
             case 'date':
             	return app.glob.date.get(val);
             case 'datetime':
@@ -226,9 +269,28 @@ var $rend =
             	return app.glob.date.now(val);
             case 'checkbox':
             	return (val) ? "Yes" : "No";
+            case 'money':
+            	return self.money(val);
             default:
             	return val;
         }
+    },
+    money:function(s){
+    	s = parseInt(s)/100;
+    	s= String(s);
+    	if(s=="") return 0;
+    	addDecimal = true;
+		var number =  s.replace(/[^0-9.]/g, '').toString();
+		var split = number.split('.');
+		dollars = split[0];
+		cents = (split[1] || split[1]=='') ? '.'+split[1].slice(0,2) : '';
+	    dollars = dollars.split('').reverse().join('').replace(/(\d{3}(?!$))/g, '$1,').split('').reverse().join('');
+	   	if(addDecimal && dollars!='') {
+			var l = cents.length;
+		    if(!l) cents = '.00';
+		    if(l==2) cents = cents+'0';
+        }
+		return "$"+dollars+cents;
     },
     add:function(f,el){
        // alert(JSON.stringify(f));
@@ -442,6 +504,15 @@ var $rend =
             	val = self.filter(val,"datetime");
             
             	return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+">";
+				case 'dateMonth':
+            	//val = $rend.filter(val,'date');
+                //return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='date'>";
+            	td.class.push("dateMonth");
+            	cl='class="'+td.class.join(' ')+'"';
+            	
+            	val = self.filter(val,"dateMonth");
+            
+            	return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+">";
 
             	case 'id':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='alphaNumericDash'>";
@@ -456,7 +527,7 @@ var $rend =
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='phone'>";
                 case 'email':
                 return "<input type='text' data-type='"+td.type+"' id='"+name+"' name='"+td.id+"' value=\""+val+"\"' "+attr+" "+cl+" vkey='email' vfoc='email'>";
-                case 'image':
+                /*case 'image':
                     var attr = (td.width) ? "data-width='"+td.width+"' " : "";
                     if(td.height) attr+="data-height='"+td.height+"' ";
                     if(td.thumb) attr+="data-thumb='"+td.thumb+"' ";
@@ -481,22 +552,8 @@ var $rend =
                     //$.each(val,function(i,o){val[i]=self.fileServer+o});
                     return "<div id='"+td.id+"'></div><script> $(function(){$('#"+td.id+"').zoomy(['"+val.join("','")+"'],{})));</script>";
                // return "<img  id='"+td.id+"'  src=\""+self.fileServer+val+"\" "+attr+" "+cl+" />";
-			case 'images':
-				 val = [
-						"https://www.ebyexteriors.com/wp-content/uploads/2020/03/deck-color-schemes.jpg",
-						"https://www.bankrate.com/2021/05/03094639/How_much_does_it_cost_to_build_a_deck-1104x720.jpg",
-						"https://diy.sndimg.com/content/dam/images/diy/fullset/2010/6/4/1/CI-Timber-Tech_multi-level-deck_s4x3.jpg.rend.hgtvcom.1280.960.suffix/1420870953404.jpeg",
-					];
-					 var h ="<div class='input image_upload'  data-id='"+td.id+"'><div class='progress' style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div>";
-					
-					$.each(val,function(i,o){
-						var name = o.split("/");
-						name = name[name.length-1];
-					
-						h+="<a class='thumb'><span class='thumb-img' style='background:url("+o+");'></span><span class='thumb-text'>"+name+"</span></a>";
-					});
-					h+=" <a class='thumb-upload' ><span style='font-size:32px'>+</span><br> Upload</a></p>"
-					return h+"</div>";
+			
+					*/
 
 		   case 'table':
 			   return "<table class='list'>"+self.table(val)+"<table>";
@@ -506,33 +563,91 @@ var $rend =
             case 'title':
                 return '<h1>'+title+'</h1>';
             case 'html':
-                return td.html;
-            case 'file':
-            	
-                 var h = "<div class=' input'><div class='progress'  style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div><span class='images'>";
-                 
+                return self.temp(td.html,e);
+           /* case 'file':
+                 var h = "<div class=' input'><span class='images'>";
                  if(val) {
                      var split = val.split("/");
                      name = split[split.length-1];
-                     h+="<p><a href='"+val+"' target='_blank'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a></p>"
+                     h+="<h4><a href='"+val+"' target='_blank'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a></h4>"
                  }
-                 
                  return h+="</span><span class='inputs'></span><input  type='file'/></div>";
+			*/
+            case 'file':
+            	td.multipe=0;
+            	td.featured=0;
+            	td.type="files";
+            case 'image':
+            	if(td.type=="image") {
+					td.multipe=0;
+					td.featured=1;
+					td.accept = '.jpg,.png,.gif,.jpeg';
+					td.type="files";
+            	}
+            case 'images':
+            	if(td.type=="images") {
+            		td.accept = '.jpg,.png,.gif,.jpeg';
+            		td.type="files";
+            	}
             case 'files':
-            	
-                 var h = "<div class=' input' style='position:relative;'><div class='progress'  style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div><span class='images'>";
-                 
+            	/*val = td.val  = [
+						{
+							"id":"jlksdfjasdf",
+							"text":"deck-color-schemes.pdf",
+							"url":"https://www.ebyexteriors.com/wp-content/uploads/2020/03/deck-color-schemes.jpg",
+							"ext":"pdf",
+							"size":2343,
+							"created":"2022-01-01T10:00:00"
+						}
+					];*/
+				var attr = (td.width) ? "data-width='"+td.width+"' " : "";
+				if(td.height) attr+="data-height='"+td.height+"' ";
+				if(td.thumb) attr+="data-thumb='"+td.thumb+"' ";
+				if(td.query) attr+="data-query='"+td.query+"' ";
+				if(td.orientation) attr+="data-orientation='"+td.orientation+"' ";
+				var input_value = (typeof val === "string") ? val : JSON.stringify(val);
+				if(typeof val === "string" || td.string) attr+="data-string='true' ";
+                var h = "<div class='input' style='position:relative;' "+attr+"><div class='progress'  style='display:none;'><div class='progress-bar w3'> <div class='progress-text'></div></div></div><input type='hidden' name='"+td.id+"' data-type='files' value='"+input_value+"'/>";
+                var centered = (td.featured) ? "files-center" : "";
+                h+= '<ul class="files '+centered+'">';
+				var file_classes = {
+					"jpg":"files-img",
+					"png":"files-img",
+					"gif":"files-img",
+					"jpeg":"files-img",
+					"mov":"files-video",
+					"mp4":"files-video",
+					"avi":"files-video",
+					"mkv":"files-video",
+					"mp3":"files-audio",
+					"wav":"files-audio",
+					"aac":"files-audio",
+					"ogg":"files-audio"
+				};
+			
                  if(val) {	
-                 	h+="<p style='position:relative;'>";
-                 	$.each(val,function(i,v){
-                 		var split = v.url.split("/");
-                    	 name = "contract101.pdf";
-                     	h+="<a href='"+v.url+"' target='_blank' class='file'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a>"
-                 	})
-                 	h+=" <a class='thumb-upload' ><span style='font-size:32px'>+</span><br> Upload</a></p>"
+                 	if(typeof val === "string") val = [{url:val}];
+                 	$.each(val,function(i,o){
+                 		var cl = (file_classes[o.ext]) ? file_classes[o.ext] : "files-file";
+                 		if(td.featured) cl = "files-img";
+                 		var st = (cl=="files-img") ? "background-image:url("+o.url+");background-size:cover;" : "";
+                 		if(!o.text || o.text == "") o.text = o.url;
+                 		if(!o.created) o.created = "";
+                 		if(!o.size) o.size = "";
+                 		if(!o.ext) o.ext = "";
+                 		var featured = (td.featured) ? "files-featured" : "";
+                    	h+=`<li class='files-item ${featured}' data-created="${o.created}" data-size="${o.size}" data-ext="${o.ext}" data-text="${o.text}"  data-url="${o.url}"  data-id="${o.id}"><a class="${cl}" style='${st}' href="${o.url}" target="_blank" ></a><a  href="${o.url}" target="_blank" class="file-name" >${o.text}</a><span class="file-date">${o.created}</span><a class="file-delete" onclick="app.files.removeItem(this)"></a></li>`;
+						
+                     	//h+="<a href='"+v.url+"' target='_blank' class='file'><span class='jam-document jam'></span><br/><span class='icon-name'>"+name+"</span></a>"
+                 	});
                  }
+                 	h+=`<li class="files-upload" onclick="$(this).parent().parent().find('input').trigger('click');"><span class="file-add file-upload">+</span><span class="file-name">Upload File</span><span class="file-date"></span></li>`;
+                 	if(td.stock) h+='<li class="files-stock"><span class="file-add file-stock">+</span><span class="file-name">Stock Photos</span><span class="file-date"></span></li>';
+					
+                 var accept = (td.accept) ? 'accept="'+td.accept+'"' : "";
+                 var multiple = (td.multiple) ? "multiple" : ""
                  
-                 return h+="</span><span class='inputs'></span><input  type='file'/></div>";
+                 return h+="</ul><span class='inputs'></span><input  type='file' "+accept+" "+multiple+"/></div>";
             
             case 'textarea':case 'body':
                 return "<textarea type='text' name='"+td.id+"' id='"+name+"' "+attr+" "+cl+">"+val+"</textarea>";
@@ -705,7 +820,7 @@ var $rend =
 								var attr2 = $rend.rendAttr(o);
 								h+='<option value="'+value+'" '+attr2+' '+selected+'>'+o.text+'</option>';
 							});
-							alert(h);
+							
 							$('#'+unique).html(h);
 							var free = (td.free_text) ? 1 : 0;
                     
@@ -780,7 +895,7 @@ var $rend =
 				}
                 return h+'</select>';
             case 'list':
-                h+='<select id="'+name+'"data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' '+cl+'>';
+                h+='<select id="'+name+' "data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' '+cl+'>';
                 //var valueId = val;
                 var valueId = (val.id) ? val.id : val;
              
@@ -792,6 +907,107 @@ var $rend =
                     h+='<option value="'+value+'" '+selected+'>'+o.text+'</option>';
                 });
                 return h+"</select>";
+            case 'sort':
+            	
+            	var h = "<input class='input search-table' /><input  type='hidden' class='input table-key'/><div id='"+name+"-key' class='table-results' style='display:none;position:absolute; width:100%;box-shadow:0px 10px 20px rgba(0,0,0,.1);'></div><input class='input hidden' type='hidden' name='"+td.id+"' data-type='json' value='"+JSON.stringify(val)+"'/><br><div id='"+name+"'></div>";
+            	//ADD EDIT REMOVE TO FRAME
+				var frame = (td.frame) ? JSON.parse(JSON.stringify(td.frame)) : {};
+				//frame.push({cl:["edit"],val:"<a onclick='$rend.sort_edit(this,)' style='display:block;'>&#9998;</a>"});
+				frame.push({cl:["remove"],val:"<a onclick='$(this).parent().parent().fadeOut(function(){$rend.sortChange($(this).parent().parent())}).attr(\"data-index\",\"\");' style='display:block;'>&#10005;</a>"});
+				frame.unshift({val:"1"});
+
+				
+            	if(val.length) {
+            		
+            		var ids = [];
+            		$.each(val,function(i,o){ids.push(o.id)});
+            		
+            				
+            		$.post( "/api/crud/search/"+td.key+"/1000", {ids:ids},
+						function(e) {
+							e = JSON.parse(e);
+							var val2 = [];
+							
+							if(e.hits.length) {
+								var keys = {};
+								//SET SORT TO PARENT ORDER
+								$.each(e.hits,function(i,o){
+									keys[o.id] = o;
+								});
+								$.each(val,function(i,o){
+									if(o.id && keys[o.id]) val2.push(keys[o.id]);
+								});
+								val = val2;
+							}  else {
+								val = [];
+							}
+							
+							h= self.table(val,frame,{no_message:1});
+							$('#'+name).html("<table class='list hover'>"+h+"</table>");
+							$('#'+name+'  tbody').sortable({stop:function(){
+								self.sortChange(this);
+							}});
+							self.sortChange($('#'+name+'  tbody'));
+						}
+					);
+					
+					
+					 
+            	} else {
+            		var html = self.table([],frame,{no_message:1});
+            		
+            		setTimeout(function(){
+            			$('#'+name).html("<table class='list hover'>"+html+"</table>");
+            			$('#'+name+'  tbody').sortable({stop:function(){
+								self.sortChange(this);
+							}});
+            		},100);
+            	}
+            	
+            	$.post( "/api/crud/search/"+td.key+"/10", {},function(e) {
+						e = JSON.parse(e);
+						$('#'+name+"-key").parent().find("input.table-key").val(JSON.stringify(e.hits));
+						var frame2 = (td.frame) ? td.frame : {};
+						h= self.table(e.hits,frame2);
+						$('#'+name+"-key").html("<table class='list hover'>"+h+"</table>");
+						$('#'+name+'-key  tr').on("mousedown",function(){
+							var id = $(this).data('id');
+							var index = $(this).data('index');
+							var div = $(this).parent().parent().parent().parent();
+							var tbody = $('#'+name).find("tbody");
+							var o = JSON.parse($(div).find("input.table-key").val());
+							
+							var h = $rend.tableRow(o[index],frame);
+							$(tbody).prepend(h).hide().fadeIn();
+							$rend.sortChange(tbody);
+						});
+					});
+					
+					
+					
+					
+				setTimeout(function(){
+					$("input.search-table").on("focus",function(){
+						$(this).parent().find(".table-results").show();	
+					});
+					$("input.search-table").on("blur",function(){
+						$(this).parent().find(".table-results").hide();	
+						$(this).val("");
+					});
+					$("input.search-table").on("keydown",function(){
+					
+						$(this).attr("data-val",$(this).val());
+						$(this).attr("data-time",Date.now());
+						
+					});
+					$("input.search-table").on("input",function(){
+						var time = parseInt($(this).attr("data-time"));
+						var el = this;
+						setTimeout($rend.sortCall,500,time,td,name);						
+					});
+				},100);
+				 return h;
+           
             case 'timeline':
             	h+='<div class="input center"><select onchange="$rend.timelineChange(this)" id="'+name+'"data-key="'+td.id+'"  data-type="'+td.type+'" name="'+td.id+'" '+attr+' >';
                 //var valueId = val;
@@ -823,6 +1039,88 @@ var $rend =
                 return td.html;
         }
     },
+    sortCall:function(time,td,name){
+    	var el = $('#'+name+"-key").parent().find("input.search-table");
+   		var time2 = parseInt($(el).attr("data-time"));
+   		var self = this;
+		if(time==time2) {
+			var frame = (td.frame) ? JSON.parse(JSON.stringify(td.frame)) : {};
+				//frame.push({cl:["edit"],val:"<a onclick='$rend.sort_edit(this,)' style='display:block;'>&#9998;</a>"});
+				frame.push({cl:["remove"],val:"<a onclick='$(this).parent().parent().fadeOut(function(){$rend.sortChange($(this).parent().parent())}).attr(\"data-index\",\"\");' style='display:block;'>&#10005;</a>"});
+				frame.unshift({val:"1"});
+
+			$.post( "/api/crud/search/"+td.key+"/10", {query:$(el).attr("data-val")},function(e) {
+						
+						e = JSON.parse(e);
+						$('#'+name+"-key").parent().find("input.table-key").val(JSON.stringify(e.hits));
+						var frame2 = (td.frame) ? td.frame : {};
+						h= $rend.table(e.hits,frame2);
+						$('#'+name+"-key").html("<table class='list hover'>"+h+"</table>");
+						$('#'+name+'-key  tr').on("mousedown",function(){
+							var id = $(this).data('id');
+							var index = $(this).data('index');
+							var div = $(this).parent().parent().parent().parent();
+							var tbody = $('#'+name).find("tbody");
+							var o = JSON.parse($(div).find("input.table-key").val());
+							var h = $rend.tableRow(o[index],frame);
+							$(tbody).prepend(h).hide().fadeIn();
+							$rend.sortChange(tbody);
+						});
+					});
+		}
+    },
+    sortChange:function(t){
+    	var self = this;
+    	var data = [];	
+    	var text_key = "name";
+    	var n = 1;
+    	
+    	var total = $(t).find("tr").length;
+    	$(t).find("tr").each(function(i,o){
+			var id =$(this).data('id');
+			if(id && $(this).css('display')!='none') {	
+				var obj = {
+					'id':id,
+					'text':$(this).find("[data-id='"+text_key+"']").text()
+				};
+				
+				var img = $(this).find("[data-id='image']");
+				if($(img).length) obj.image = $(img).find("img").attr("src");
+				data.push(obj);
+				$(this).find("td:first-child").html(self.rendSelect(n,total));
+				$(this).attr("data-index",n);
+				n++;
+			}
+		});
+		$(t).parent().parent().parent().find("input[class='input hidden']").val(JSON.stringify(data));
+				
+
+    },
+    rendSelect:function(v,total){
+		var h = "<select class='number' onchange='$rend.reOrder(this)'>";
+		for (let i = 1; i < total+1; i++) { 
+		    var select = (v==i) ? "selected" : "";
+			h+="<option value='"+i+"' "+select+">"+i+"</option>"
+		}
+		
+		return h+"</select>";
+	},
+	reOrder:function(t){
+		var val = parseInt($(t).val());
+		var index = parseInt($(t).parent().parent().attr("data-index"));
+		var rows = $(t).parent().parent().parent();
+		
+		
+		if(val>index) {
+			$(rows).find("tr[data-index='"+val+"']").after($(t).parent().parent());
+		} else {
+			$(rows).find("tr[data-index='"+val+"']").before($(t).parent().parent());
+		}
+		
+		//this.reIndex();
+		//alert($(t).parent().parent().parent().html())
+		this.sortChange(rows);
+	},
     timeline:function(options,values){
     	
     	//{"event":{"created":"2022-01-01","user":{"id":"id","text":"User"}}}
@@ -927,7 +1225,8 @@ var $rend =
     temp:function(template,object){
         var self = this;
         var h = '';
-        if(Array.isArray(object) || typeof object === 'object'){
+        if(Array.isArray(object)){
+        	
             $.each(object,function(n,ob){
                 s = template.split("{{i}}").join(n);
                 s = s.split("{{this").join('{{o');
@@ -1088,7 +1387,7 @@ var $rend =
     tableBasic:function(obj,vars,key,tbody) {
 		var self = this;
 		if(!key) key = "id"; 
-		if(!obj.length)  return  "<table><tbody><tr id='tr-0'><td style='text-align:center;'>There are no results</td></tr></tbody></table>";
+		if(!obj.length)  return  "<table><thead><tr id='tr-0'><th style='text-align:center;'>There are no results</th></tr></thead></table>";
 		var h = "<table><thead><tr>";
 		var body = "<tbody>";
 		if(!vars){

@@ -4,32 +4,32 @@
         <title>Website</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
+		<style>td{padding:5px; outline:solid thin #ddd;}</style>
     </head>
     <body>
-        <div pax='home'>
-        	<h1 pax="title"></h1>
+        <div app='home'>
+        	<h1 child="title"></h1>
             <table>
             	<thead>
             		<th>First Name</th>
             		<th>Last Name</th>
             		<th>Age</th>
             	</thead>
-            	<tbody pax='tbody'></tbody>
+            	<tbody child='tbody'></tbody>
             </table>
             
             <hr>
-            <h1 pax="title2"></h1>
-            <table pax="table"></table>
+            <h1 child="title2"></h1>
+            <table child="table"></table>
             
             <hr>
-            <h1 pax="title3"></h1>
+            <h1 child="title3"></h1>
             <table>
             	<thead>
             		<th>Date Available</th>
             		<th>Position</th>
             	</thead>
-            	<tbody pax='tbody3'>
+            	<tbody child='tbody3'>
             		<tr>
             			<td>{{this.date_open}}</td>
             			<td>{{this.position}}</td>

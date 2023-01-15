@@ -19,7 +19,7 @@ $pax.prototype = {
         var self = this;
         //Set templates
         $('template').each(function(){
-            var key = $(this).attr('pax');
+            var key = $(this).attr('app');
             var template = $(this).html();
             
             if(typeof key !== 'undefined') {
@@ -50,10 +50,7 @@ $pax.prototype = {
       
         //load gobal apps, then non routed apps
         this.loadApps(self.appGlob,function(){
-        	self.loadApps(self.appInit,function(){
-        		//load route
-        		self.routing();
-        	});
+        	(Object.keys(self.routes).length === 0) ? self.loadApps(self.appInit) : self.routing();
         });
     },
     setDefaults:function(o){
@@ -74,6 +71,7 @@ $pax.prototype = {
 		var total = array.length;
 		var index = 0;
 		if(!array.length && fun) fun();
+		
 		$.each(array,function(i,key){
 			var app = self.apps[key];
 			if(app.init) app.init();
@@ -118,7 +116,8 @@ $pax.prototype = {
     initApp:function(key) {
     	var self =this;
     	var app = this.apps[key];
-		if(!app.root && $('[pax="'+key+'"]').length) app.root = '[pax="'+key+'"]';
+    	
+		if(!app.root && $('[app="'+key+'"]').length) app.root = '[app="'+key+'"]';
 		if(app.loaded) app.loaded();
 		if(app.root) this.renderApp(key);
 		if(app.ready) app.ready();
@@ -142,11 +141,18 @@ $pax.prototype = {
         }
     },
     renderChildren:function(key){
+    	if(!key || key===undefined) alert("NO")
+    	
         var self = this;
         var app = this.apps[key];
-        $(app.root).find("[pax]").each(function(i,o){
+  
+        $(app.root).find("[app]").each(function(i,o){self.initApp($(this).attr("app"))});
+        $(app.root).find("[app]").find("[child]").each(function(i,o){$(this).attr("children",$(this).attr("child"));$(this).removeAttr("child")});
+        $(app.root).find("[child]").each(function(i,o){
+        	
             var tag = $(o).prop("tagName");
-            var id = $(o).attr('pax');
+            var id = $(o).attr('child');
+          	
             if(id=="") return false;
             
             app.el[id] = $(o);
@@ -156,10 +162,12 @@ $pax.prototype = {
             if(tag=='INPUT' && $(o).attr('type')=='radio') tag='IGNORE';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
-            if($(o).attr('pax-type')) tag = $(o).attr('pax-type').toUpperCase();
+            if($(o).attr('child-type')) tag = $(o).attr('child-type').toUpperCase();
             app.tag[id] = tag;
             var html = $(o).html();
+            
             if(!app.templates[id] && html.indexOf('{{') >= 0)  app.templates[id] = html;
+            
             switch(tag){
                 case 'UL':case 'OL':
                     if(!app.templates[id]) app.templates[id] = '<li data-index="{{index}}">{{value}}</li>';
@@ -186,7 +194,7 @@ $pax.prototype = {
                 break;
                 case 'CHECKBOX':
                     if(app.data[id]) {
-                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' pax='"+id+"' />"+app.data[id].text+"</label>");
+                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' child='"+id+"' />"+app.data[id].text+"</label>");
                         if(app.data[id].id) $(o).prop("checked",true);
                     } else {
                          app.data[id]={id:0,text:$(this).parent().text()};
@@ -194,6 +202,8 @@ $pax.prototype = {
                     $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})
                 break;
                 case 'INPUT':
+                	//pax.print(app.data);
+                	
                     (app.data[id] || app.data[id]==0) ? $(o).val(app.data[id]) : app.data[id] = $(o).val();
                     $(app.el[id]).on('keyup',{self:self},function(e){ e.data.self.setData(key,id);});
                 break;
@@ -260,12 +270,15 @@ $pax.prototype = {
                     self.render(key,id);
             }
         });
+        $(app.root).find("[app]").find("[children]").each(function(i,o){$(this).attr("child",$(this).attr("children"));$(this).removeAttr("children")});
+        
     },
     render:function(key,id){
         if(!this.apps[key]) {
             alert('App "'+key+'" does not exist');
             return;
         }
+        
         if(!id) return this.loadApps([key]);
         var self = this;
         var app = this.apps[key];
@@ -290,6 +303,7 @@ $pax.prototype = {
                     s = self.tempString(s,key,li,id,n);
                     h+=s;
                 });
+                
             }
         } else if(typeof val === 'object') {
             
@@ -314,21 +328,26 @@ $pax.prototype = {
                 h=str;
             }
         }
-        $(app.el[id]).html(h);
+      	//alert(id);
+      	
+      	$(app.root).find("[child='"+id+"']").html(h);
+        //$(app.el[id]).html(h);
         return h;
     },
     rendTemplate:function(key){
+    	
         if(!this.apps[key].template || this.apps[key].template=="" || this.apps[key].template.indexOf('{{') == -1) return this.apps[key].template;
         var template = $($.parseHTML("<div>"+this.apps[key].template+"</div>"));
     	var keys = {};
     	//Temporarily Remove children
-    	template.find("[pax]").each(function(){
+    	template.find("[child]").each(function(){
     		var id = Math.random().toString(36).substring(4);
     		$(this).after(id).remove();
     		keys[id] = $(this)[0].outerHTML;
     	});
     	
     	var s = template.html().valueOf().toString();
+    	
     	s = s.split("this.").join(key+'.data.');
         s = this.tempString(s,key);
     	$.each(keys,function(k,h){
@@ -433,12 +452,13 @@ $pax.prototype = {
     },
     set:function(key,id,val,value){
         if(val=='') val=null;
+       
         var app = this.apps[key];
-        
+     
         (value) ? this._set(id,value,app.values) : this._set(id,val,app.data);
         if(id.indexOf('.')>-1) id = id.split('.')[0];
         if(app.change[id]) app.change[id](val,id,key);
-        
+      
         if(app.templates[id] && !value) {
             this.render(key,id);
             this.setHTML(key,id);
@@ -538,6 +558,7 @@ $pax.prototype = {
         var _path= '';
         var _path2= '';
         var self = this;
+       
         for (var i=0, total=this.url.length; i < total; i++) {
             _path+=(i) ? '/'+this.url[i] : this.url[i];
             _path2+=(i) ? "_"+this.url[i] : this.url[i];
@@ -551,7 +572,6 @@ $pax.prototype = {
             $(this.apps[key].root).html(self.loadTemplate);
             this.activeRoute = this.routes[route];
             this.loadApps([key]);
-            
             if(this.routeReady) this.routeReady();
             $.each(this.apps,function(k,o){
                 if(o.appReady) o.appReady();
@@ -595,14 +615,14 @@ $pax.prototype = {
 		
 		if(str.indexOf(".")<0) {
 			var val= (typeof obj[str] !== "undefined") ? obj[str] : '';
-			if(typeof val === 'object' && val.text) val = val.text;
+			if(typeof val === 'object' && val && val.text) val = val.text;
 			if(typeof val === 'object' && val[0] && val[0].text) val = val.map(u => u.text).join(', ');
 		} else {
 			var val = str.split('.').reduce(function (o,v) {
 				return o ? o[v] : '';
 			}, obj);
 			if(typeof val === 'object' && val.text) val = val.text;
-			if(typeof val === 'object' && val[0] && val[0].text) val = val.map(u => u.text).join(', ');
+			if(typeof val === 'object' && val && val[0] && val[0].text) val = val.map(u => u.text).join(', ');
 		}
 		return val;
 	},

@@ -7,9 +7,9 @@
         
     </head>
     <body>
-        <div pax='shared'></div>
+        <div app='shared'></div>
         <div id='routes'>
-            <template pax='page3'>
+            <template app='page3'>
                 <h1>PAGE 3</h1>
                 <p> Lorem ipsum consectetur adipiscing elit, ut labore et dolore magna aliqu </p>
             </template>
@@ -20,9 +20,19 @@
  <script>
     pax.routeHash=1;
     app.shared = {
-        template:"<h1>Website</h1><p><button onclick='pax.link(\"routing.html#/page1\")'>Page 1</button> <button onclick='pax.link(\"routing.html#/page2\")'>Page 2</button> <button onclick='pax.link(\"routing.html#/page3\")'>Page 3</button></p>",
+    	global:1,
+        template:"<h1>Website</h1><p><button onclick='pax.link(\"routing.html#\")'>Home</button> <button onclick='pax.link(\"routing.html#/page1\")'>Page 1</button> <button onclick='pax.link(\"routing.html#/page2\")'>Page 2</button> <button onclick='pax.link(\"routing.html#/page3\")'>Page 3</button></p>",
         ready:function(){
             alert('Navigation is Ready!');
+       
+        }
+    }
+    //index.html
+    app.page = {
+        url:"/",
+        template:"<h1>HOME</h1><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, ut labore et dolore magna aliqua.</p>",
+        ready:function(){
+           
         }
     }
     //index.html#/page1

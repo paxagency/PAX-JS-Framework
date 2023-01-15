@@ -8,17 +8,17 @@
     </head>
     <body>
     	<hr>
-        <div pax='home'>
-        	<h1 pax="title">List of my favorite colors.</h1>
-            <ul pax="color">
+        <div app='home'>
+        	<h1 child="title">List of my favorite colors.</h1>
+            <ul child="color">
             	<li>Red</li>
             	<li>Blue</li>
             	<li>Green</li>
             </ul>
-            <h2 pax="sub_title">What is your name?</h2>
-            <input type="text" pax="name">
-            <h2 pax="sub_title2">What is your favorite color?</h2>
-            <select pax="colors">
+            <h2 child="sub_title">What is your name?</h2>
+            <input type="text" child="name">
+            <h2 child="sub_title2">What is your favorite color?</h2>
+            <select child="colors">
             	<option value="red">Red</option>
             	<option value="blue">Blue</option>
             	<option value="green">Green</option>
@@ -30,9 +30,7 @@
             <button onclick="app.home.changeData()">Change Data</button>
             <button onclick="app.home.changeValues()">Change Values</button>
         </div>
-        <div pax='colors1'>
-        	<h1 pax='title'>Title2 </h1>
-        </div>
+       
     </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
@@ -58,11 +56,7 @@
         	this.set('name','Frank');
         }
     }
-    app.colors1 = {
-    	data:{
-    		title:"App 2 Title"
-    	}
-    }
+   
  </script> 
 
 </html>

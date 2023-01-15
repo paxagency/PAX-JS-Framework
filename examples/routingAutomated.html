@@ -12,17 +12,21 @@
        <button onclick="location='routingAutomated.html#/page2'">Page 2</button>
        <button onclick="location='routingAutomated.html#/page3'">Page 3</button></p>
         <div id='routes'>
-            <template pax='page1''>
+        	 <template app='home''>
+                <h1>HOME</h1>
+                <p> Lorem ipsum consectetur adipiscing elit, ut labore et dolore magna aliqu </p>
+            </template>
+            <template app='page1''>
                 <h1>PAGE 1</h1>
                 <p> Lorem ipsum consectetur adipiscing elit, ut labore et dolore magna aliqu </p>
             </template>
-            <template pax='page2''>
+            <template app='page2''>
                 <h1>PAGE 2</h1>
                 <p> It labore et dolore magna aliqu consectetur adipiscing elit, ut labore et dolore magna aliqu </p>
             </template>
-            <template pax='page3''>
-                <h1 pax="title">PAGE 3</h1>
-                <p pax="body">Consectetur adipiscing elit Iit labore et dolore magna aliqu, ut labore et dolore magna aliqu </p>
+            <template app='page3''>
+                <h1 child="title">PAGE 3</h1>
+                <p child="body">Consectetur adipiscing elit Iit labore et dolore magna aliqu, ut labore et dolore magna aliqu </p>
             </template>
         </div>
     </body>
@@ -30,6 +34,7 @@
 <script src="../dist/pax.js"></script>
  <script>
     pax.routeHash=1;
+    app.home = {url:"/"}
     app.page3 = {
     	data:{title:"PAGE 3 <i>Interactive</i>",body:"This body text is from the class data object, not from the lorem ipsum text within the template tags."},
     	ready:function(){

@@ -7,11 +7,11 @@
         
     </head>
     <body>
-        <div pax='home'>
-            <h1 pax='title'></h1>
-            <ul pax='todos'></ul>
+        <div app='home'>
+            <h1 child='title'></h1>
+            <ul child='todos'></ul>
             <h4 class='message' style='display:none;'>There are no items to do.</h4>
-            <input pax='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
+            <input child='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
     </body>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Website</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+       
+        
+    </head>
+    <body>
+    	<table><tbody><tr><td>
+        <div app='app1'>
+            <h2 child='header'></h2>
+            <p child="message"></p>
+            <div app='module'></div>
+        </div>
+       </td><td>
+       <div app='app2'>
+            <h2 child='header'></h2>
+            <p child="message"></p>
+            <div app='module'></div>
+        </div>
+       </td></tr></table>
+    </body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="../dist/pax.js"></script>
+<script>
+    app.app1 = {
+        data:{
+        	header:"App 1",
+        	message:"App 1 module below"
+        }
+    }
+    app.app2 = {
+        data:{
+        	header:"App 2",
+        	message:"App 2 module below"
+        }
+    }
+    app.module = {
+    	root:"[app='module']",
+    	template:"<h2 child='header'></h2><ul child='colors'></ul><button onclick='app.module.cl();'>Change module data</button>",
+        data:{
+        	colors:["Red","Blue","Green"],
+        	header:"Module header"
+        },
+        cl:function(){
+        	this.set("colors",["Purple","Teal","Red"]);
+        }
+    }
+</script> 
+
+</html>
