@@ -8,10 +8,10 @@
     </head>
     <body>
         <div app='home'>
-            <h1 child='title'></h1>
-            <ul child='todos'></ul>
+            <h1 bind='title'></h1>
+            <ul bind='todos'></ul>
             <h4 class='message' style='display:none;'>There are no items to do.</h4>
-            <input child='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
+            <input bind='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
     </body>

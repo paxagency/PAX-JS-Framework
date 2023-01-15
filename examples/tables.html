@@ -8,28 +8,28 @@
     </head>
     <body>
         <div app='home'>
-        	<h1 child="title"></h1>
+        	<h1 bind="title"></h1>
             <table>
             	<thead>
             		<th>First Name</th>
             		<th>Last Name</th>
             		<th>Age</th>
             	</thead>
-            	<tbody child='tbody'></tbody>
+            	<tbody bind='tbody'></tbody>
             </table>
             
             <hr>
-            <h1 child="title2"></h1>
-            <table child="table"></table>
+            <h1 bind="title2"></h1>
+            <table bind="table"></table>
             
             <hr>
-            <h1 child="title3"></h1>
+            <h1 bind="title3"></h1>
             <table>
             	<thead>
             		<th>Date Available</th>
             		<th>Position</th>
             	</thead>
-            	<tbody child='tbody3'>
+            	<tbody bind='tbody3'>
             		<tr>
             			<td>{{this.date_open}}</td>
             			<td>{{this.position}}</td>

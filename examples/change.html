@@ -9,8 +9,8 @@
     </head>
     <body>
         <div app='home'>
-            <input child='inp' type='text'/>
-            <h2 child='message'>Type above for hidden message</h2>
+            <input bind='inp' type='text'/>
+            <h2 bind='message'>Type above for hidden message</h2>
             <button onclick="pax.print(app.home.data.inp);">Share Input</button>
             <button onclick="pax.print(app.home.data.message);">Share Message</button>
         </div>

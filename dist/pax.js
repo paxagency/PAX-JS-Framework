@@ -147,11 +147,11 @@ $pax.prototype = {
         var app = this.apps[key];
   
         $(app.root).find("[app]").each(function(i,o){self.initApp($(this).attr("app"))});
-        $(app.root).find("[app]").find("[child]").each(function(i,o){$(this).attr("children",$(this).attr("child"));$(this).removeAttr("child")});
-        $(app.root).find("[child]").each(function(i,o){
+        $(app.root).find("[app]").find("[bind]").each(function(i,o){$(this).attr("children",$(this).attr("bind"));$(this).removeAttr("bind")});
+        $(app.root).find("[bind]").each(function(i,o){
         	
             var tag = $(o).prop("tagName");
-            var id = $(o).attr('child');
+            var id = $(o).attr('bind');
           	
             if(id=="") return false;
             
@@ -162,7 +162,7 @@ $pax.prototype = {
             if(tag=='INPUT' && $(o).attr('type')=='radio') tag='IGNORE';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
-            if($(o).attr('child-type')) tag = $(o).attr('child-type').toUpperCase();
+            if($(o).attr('bind-type')) tag = $(o).attr('bind-type').toUpperCase();
             app.tag[id] = tag;
             var html = $(o).html();
             
@@ -194,7 +194,7 @@ $pax.prototype = {
                 break;
                 case 'CHECKBOX':
                     if(app.data[id]) {
-                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' child='"+id+"' />"+app.data[id].text+"</label>");
+                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' bind='"+id+"' />"+app.data[id].text+"</label>");
                         if(app.data[id].id) $(o).prop("checked",true);
                     } else {
                          app.data[id]={id:0,text:$(this).parent().text()};
@@ -270,7 +270,7 @@ $pax.prototype = {
                     self.render(key,id);
             }
         });
-        $(app.root).find("[app]").find("[children]").each(function(i,o){$(this).attr("child",$(this).attr("children"));$(this).removeAttr("children")});
+        $(app.root).find("[app]").find("[children]").each(function(i,o){$(this).attr("bind",$(this).attr("children"));$(this).removeAttr("children")});
         
     },
     render:function(key,id){
@@ -330,7 +330,7 @@ $pax.prototype = {
         }
       	//alert(id);
       	
-      	$(app.root).find("[child='"+id+"']").html(h);
+      	$(app.root).find("[bind='"+id+"']").html(h);
         //$(app.el[id]).html(h);
         return h;
     },
@@ -340,7 +340,7 @@ $pax.prototype = {
         var template = $($.parseHTML("<div>"+this.apps[key].template+"</div>"));
     	var keys = {};
     	//Temporarily Remove children
-    	template.find("[child]").each(function(){
+    	template.find("[bind]").each(function(){
     		var id = Math.random().toString(36).substring(4);
     		$(this).after(id).remove();
     		keys[id] = $(this)[0].outerHTML;

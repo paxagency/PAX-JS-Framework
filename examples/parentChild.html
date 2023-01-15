@@ -10,14 +10,14 @@
     <body>
     	<table><tbody><tr><td>
         <div app='app1'>
-            <h2 child='header'></h2>
-            <p child="message"></p>
+            <h2 bind='header'></h2>
+            <p bind="message"></p>
             <div app='module'></div>
         </div>
        </td><td>
        <div app='app2'>
-            <h2 child='header'></h2>
-            <p child="message"></p>
+            <h2 bind='header'></h2>
+            <p bind="message"></p>
             <div app='module'></div>
         </div>
        </td></tr></table>
@@ -39,7 +39,7 @@
     }
     app.module = {
     	root:"[app='module']",
-    	template:"<h2 child='header'></h2><ul child='colors'></ul><button onclick='app.module.cl();'>Change module data</button>",
+    	template:"<h2 bind='header'></h2><ul bind='colors'></ul><button onclick='app.module.cl();'>Change module data</button>",
         data:{
         	colors:["Red","Blue","Green"],
         	header:"Module header"
