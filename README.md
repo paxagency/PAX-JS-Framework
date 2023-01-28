@@ -3,6 +3,13 @@ Micro Efficient Javascript Framework + Router * BETA
 
 http://docs.paxagency.com/js/
 
+0.0.153
+
+Template brackets now remove whitespace for uses cases of {{ this.id }}
+
+0.0.152
+
+Added right click, open in new window, to link method
 
 0.0.15
 

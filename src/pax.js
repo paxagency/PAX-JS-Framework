@@ -147,11 +147,11 @@ $pax.prototype = {
         var app = this.apps[key];
   
         $(app.root).find("[app]").each(function(i,o){self.initApp($(this).attr("app"))});
-        $(app.root).find("[app]").find("[child]").each(function(i,o){$(this).attr("children",$(this).attr("child"));$(this).removeAttr("child")});
-        $(app.root).find("[child]").each(function(i,o){
+        $(app.root).find("[app]").find("[bind]").each(function(i,o){$(this).attr("children",$(this).attr("bind"));$(this).removeAttr("bind")});
+        $(app.root).find("[bind]").each(function(i,o){
         	
             var tag = $(o).prop("tagName");
-            var id = $(o).attr('child');
+            var id = $(o).attr('bind');
           	
             if(id=="") return false;
             
@@ -162,7 +162,7 @@ $pax.prototype = {
             if(tag=='INPUT' && $(o).attr('type')=='radio') tag='IGNORE';
             if(tag=='INPUT' && $(o).attr('type')=='button') tag='BUTTON';
             if(tag=='INPUT' && $(o).attr('type')=='submit') tag='BUTTON';
-            if($(o).attr('child-type')) tag = $(o).attr('child-type').toUpperCase();
+            if($(o).attr('bind-type')) tag = $(o).attr('bind-type').toUpperCase();
             app.tag[id] = tag;
             var html = $(o).html();
             
@@ -171,6 +171,7 @@ $pax.prototype = {
             switch(tag){
                 case 'UL':case 'OL':
                     if(!app.templates[id]) app.templates[id] = '<li data-index="{{index}}">{{value}}</li>';
+                   
                     if(app.data[id]) {
                         self.render(key,id);
                     } else {
@@ -191,27 +192,23 @@ $pax.prototype = {
                     $(app.el[id]).find('input[name="'+id+'"]').on('change',{self:self},function(e){
                         self.setData(key,id);
                     });
-                break;
-                case 'CHECKBOX':
+                break;case 'CHECKBOX':
                     if(app.data[id]) {
-                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' child='"+id+"' />"+app.data[id].text+"</label>");
+                        $(o).parent().html("<label><input type='checkbox' name='"+id+"' bind='"+id+"' />"+app.data[id].text+"</label>");
                         if(app.data[id].id) $(o).prop("checked",true);
                     } else {
                          app.data[id]={id:0,text:$(this).parent().text()};
                     }
                     $(app.el[id]).on('change',{self:self},function(e){e.data.self.setData(key,id)})
-                break;
-                case 'INPUT':
+                break;case 'INPUT':
                 	//pax.print(app.data);
                 	
                     (app.data[id] || app.data[id]==0) ? $(o).val(app.data[id]) : app.data[id] = $(o).val();
                     $(app.el[id]).on('keyup',{self:self},function(e){ e.data.self.setData(key,id);});
-                break;
-                case 'TEXTAREA':
+                break;case 'TEXTAREA':
                     (app.data[id]) ? $(o).html(app.data[id]) : app.data[id] = $(o).html();
                     $(app.el[id]).on('focusout',{self:self},function(e){e.data.self.setData(key,id)})
-                break;
-                case 'SELECT':
+                break;case 'SELECT':
                     if(!app.templates[id]) app.templates[id] = "<option value='{{this.id}}'>{{this.text}}</option>";
                     if(app.data[id]) {
                         $(app.el[id]).html(self.render(key,id));
@@ -225,8 +222,7 @@ $pax.prototype = {
                     $(app.el[id]).on('change',{self:self},function(e){
                         self.setData(key,id);
                     });
-                break;
-                case 'TABLE':
+                break;case 'TABLE':
                     var opt = (app.templates[id]) ? app.templates[id] : 0;
                     var config = (app.config && app.config[id]) ? app.config[id] :{};
                     $(app.el[id]).html(self.table(app.data[id],opt,config));
@@ -263,14 +259,13 @@ $pax.prototype = {
                     $(app.el[id]).on('change',{self:self},function(e){
                         self.setData(key,id);
                     });
-                break;
-                default:
+                break;default:
                     if(!app.templates[id]) app.templates[id] = '{{value}}';
                     if(!app.data[id]) app.data[id] = $(o).html();
                     self.render(key,id);
             }
         });
-        $(app.root).find("[app]").find("[children]").each(function(i,o){$(this).attr("child",$(this).attr("children"));$(this).removeAttr("children")});
+        $(app.root).find("[app]").find("[children]").each(function(i,o){$(this).attr("bind",$(this).attr("children"));$(this).removeAttr("children")});
         
     },
     render:function(key,id){
@@ -290,27 +285,24 @@ $pax.prototype = {
        
         if(!val) val = '';
         if(Array.isArray(val)){
-            
             if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
                 $.each(app.data[id],function(n,li){
-                    var s = app.templates[id].valueOf().toString();
-                     
+                    var s = self.cleanString(app.templates[id]);
                     s = s.split("{{index}}").join(n);
                     s = s.split("{{value}}").join(li);
                     s = s.split("{{this").join('{{'+key+'.data.'+id+'['+n+']');
                     s = self.tempString(s,key,li,id,n);
                     h+=s;
                 });
-                
             }
         } else if(typeof val === 'object') {
             
             if(!app.templates[id]) {
                 h=JSON.stringify(val);
             } else {
-                var s = app.templates[id].valueOf().toString();
+                var s = this.cleanString(app.templates[id]);
                 s = s.split("{{this").join('{{'+key+'.data.'+id);
                 s = s.split("{{value").join('{{'+key+'.data.'+id);
                 s = self.tempString(s,key,app.data[id],id);
@@ -319,7 +311,7 @@ $pax.prototype = {
         } else {
             var str = val;
             if(app.templates[id]) {
-                var s = app.templates[id].valueOf().toString();
+                var s = this.cleanString(app.templates[id]);
                 s = s.split("{{this").join('{{'+key+'.data');
                 s = s.split("{{value").join('{{'+key+'.data.'+id);
                 s = self.tempString(s,key,app.data[id],id);
@@ -328,10 +320,9 @@ $pax.prototype = {
                 h=str;
             }
         }
-      	//alert(id);
-      	
-      	$(app.root).find("[child='"+id+"']").html(h);
-        //$(app.el[id]).html(h);
+        
+      	$(app.root).find("[bind='"+id+"']").html(h);
+       
         return h;
     },
     rendTemplate:function(key){
@@ -340,7 +331,7 @@ $pax.prototype = {
         var template = $($.parseHTML("<div>"+this.apps[key].template+"</div>"));
     	var keys = {};
     	//Temporarily Remove children
-    	template.find("[child]").each(function(){
+    	template.find("[bind]").each(function(){
     		var id = Math.random().toString(36).substring(4);
     		$(this).after(id).remove();
     		keys[id] = $(this)[0].outerHTML;
@@ -353,6 +344,14 @@ $pax.prototype = {
     	$.each(keys,function(k,h){
     		s = s.replace(k,h);
     	});
+    	return s;
+    },
+    cleanString:function(s){
+    	s = s.valueOf().toString();
+		s = s.replace(/{{(.*?)}}/gi, function (x) {
+			x = x.replace(/ /g,'');
+			return x;
+		});
     	return s;
     },
     tempString:function(s,key,obj,id,n) {
@@ -520,8 +519,12 @@ $pax.prototype = {
         window.location.href = u;
     },
     link:function(path){
-        window.history.pushState(path, path, path);
-        this.setPath(path);
+    	 if (window.event.metaKey || window.event.ctrlKey) {
+    	 	window.open(path,"_blank");
+    	 } else {
+    	 	window.history.pushState(path, path, path);
+        	this.setPath(path);
+    	 }  
     },
     setRouter:function(){
         var self = this;
