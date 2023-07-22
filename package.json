@@ -1,23 +1,19 @@
 {
   "name": "pax-js-framework",
-  "version": "0.0.154",
+  "version": "0.0.155",
   "homepage": "http://docs.paxagency.com/js",
   "license": "MIT",
-  "author": "Albert Kiteck <albert@paxagency.com>",
+  "author": "PAX Agency <hello@paxagency.com>",
   "description": "Pax JS Framework: Minimal & Ligthweight JS Framework",
   "main": "dist/pax.js",
-  "dependencies":{
-    "jquery":"^3.4.1"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paxagency/PAX-JS-Framework.git"
   },
   "keywords": [
     "javascript",
+    "minimal",
+    "router",
     "framework"
   ],
   "bugs": {

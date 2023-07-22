@@ -17,8 +17,7 @@
             <input bind='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
-    </body>
- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>    
+    </body>  
  <script src="../dist/pax.js"></script>
  <script>
     app.home = {
@@ -46,16 +45,21 @@
         },
         getCheck:function(n,o){return (o.done==1) ? 'checked' : '';},
         getClass:function(n,o){return (o.done==1) ? 'strike' : '';},
-        updateTodos:function(t){
-            var i = $(t).parent().parent().attr('data-index');
-            this.data.todos[i].done = ($(t).prop('checked')) ? 1 :0;
-            this.data.todos.sort(function(a, b) { return a.done - b.done;});
-            pax.render('home','todos');
-        },
+        
+        updateTodos: function(checkbox) {
+			var li = checkbox.closest('li');
+			var index = parseInt(li.getAttribute('data-index'), 10);
+			this.data.todos[index].done = checkbox.checked ? 1 : 0;
+			this.data.todos.sort(function(a, b) {
+			  	return a.done - b.done;
+			});
+			pax.render('home', 'todos');
+	   },
         change:{
             todos:function(v){
-                (!v.length) ? $('.message').show() :$('.message').hide()  
-            }
+				var m = document.getElementsByClassName('message')[0];
+				(!v.length) ? m.style.display = 'block' : m.style.display = 'hide';
+			}
         }
     }
     

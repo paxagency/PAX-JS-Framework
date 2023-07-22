@@ -17,11 +17,11 @@
             	</thead>
             	<tbody bind='tbody'></tbody>
             </table>
-            
+            <button onclick="app.home.cl()">Update Tbody</button>
             <hr>
             <h1 bind="title2"></h1>
             <table bind="table"></table>
-            
+            <button onclick="app.home.cl1()">Update Table</button>
             <hr>
             <h1 bind="title3"></h1>
             <table>
@@ -37,8 +37,8 @@
             	</tbody>
             </table>
         </div>
+        
     </body>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
 <script>
     app.home = {
@@ -66,7 +66,26 @@
         		{"position":"Southeast Manager","date_open":"01/18","contact":5555555555},
         		{"position":"Southwest Manager","date_open":"01/12","contact":5555555555},
         	]
-        }
+        },
+        cl:function(){
+        	this.set("tbody",[
+        		{"first_name":"Josh","last_name":"Anderson","age":34},
+        		{"first_name":"Mary","last_name":"Lou","age":33},
+        		{"first_name":"Sally","last_name":"Armstrong","age":41},
+        		{"first_name":"Elizabeth","last_name":"Warren","age":20},
+        		{"first_name":"Theresa","last_name":"Nolan","age":36},
+        	])
+        },
+        cl1:function(){
+        	this.set("table",[
+        		{"position":"Central Manager","date_open":"01/23","contact":5555555555},
+        		{"position":"Southeast Manager","date_open":"01/22","contact":5555555555},
+        		{"position":"Mideast Manager","date_open":"01/12","contact":5555555555},
+        		{"position":"Northeast Manager","date_open":"01/09","contact":5555555555},
+        		{"position":"Southeast Manager","date_open":"01/18","contact":5555555555},
+        		{"position":"Southwest Manager","date_open":"01/12","contact":5555555555},
+        	])
+        }		
     }
     
  </script> 

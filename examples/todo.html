@@ -15,7 +15,6 @@
             <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
         </div>
     </body>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
 <script>
 
@@ -38,7 +37,8 @@ app.home = {
 	},
 	change:{
 		todos:function(v){
-			(!v.length) ? $('.message').show() :$('.message').hide()  
+			var m = document.getElementsByClassName('message')[0];
+			(!v.length) ? m.style.display = 'block' : m.style.display = 'hide';
 		}
 	}
 }

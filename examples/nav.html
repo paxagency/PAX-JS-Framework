@@ -22,7 +22,6 @@
         	<template app="login"><h1>Login</h1><p>Duis aute irure dolor in reprehenderit in voluptate</p></template>
         </div>
     </body>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script src="../dist/pax.js"></script>
 <script>
 	pax.routeHash = true;
@@ -40,9 +39,9 @@
             ]
         },
         loaded:function(){
-        	$.each(this.data.nav,function(i,o){
-        		if(pax.url[0]==o.href.substring(2)) o.active="active";
-        	});
+        	this.data.nav.forEach(function (o, i) {
+				if(pax.url[0]==o.href.substring(2)) o.active="active";
+			});
         },
         setActive:function(n){
         	this.set("nav.*.active","");

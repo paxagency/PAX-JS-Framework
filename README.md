@@ -3,6 +3,10 @@ Micro Efficient Javascript Framework + Router * BETA
 
 http://docs.paxagency.com/js/
 
+0.0.155
+
+Removed JQuery dependency. Updated data.html & tables.html examples with tweaks and showing dynamic table content. 
+
 0.0.154
 
 Added parentChild.html example and updated docs website.
