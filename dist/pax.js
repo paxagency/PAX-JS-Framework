@@ -32,6 +32,7 @@ $pax.prototype = {
       }
     });
     //Set app defaults and routes
+   
     Object.entries(this.apps).forEach(function([k, o]){
       self.setDefaults(o);
       if(o.url) {
@@ -45,7 +46,7 @@ $pax.prototype = {
         } 
       }
     }); 
-
+	
     this.setRouter();
 
     //load global apps, then non-routed apps
@@ -121,7 +122,7 @@ $pax.prototype = {
   initApp:function(key) {
     var self =this;
     var app = this.apps[key];
-    
+ 
     if(!app.root && document.querySelector('[app="'+key+'"]')) app.root = '[app="'+key+'"]';
     if(app.loaded) app.loaded();
     if(app.root) this.renderApp(key);
@@ -134,8 +135,9 @@ $pax.prototype = {
     app.push = function(id,val,index){pax.push(key,id,val,index);}
     app.pop = function(id,val){pax.pop(key,id,val);}
     app.render = function(){pax.renderChildren(key);}
+
     if(!app.template) app.template = document.querySelector(app.root).innerHTML;
-    
+   
     document.querySelectorAll(app.root).forEach(function(o) {
       o.innerHTML = self.rendTemplate(key); 
     });
@@ -341,12 +343,12 @@ $pax.prototype = {
       });
     });
     document.querySelector(app.root).querySelectorAll("[app]").forEach(function(o) {
-      self.initApp(o.getAttribute("app"));
+      self.loadApps([o.getAttribute("app")]);
     });
   },
   mirror:function(key){
   	var app = this.apps[key];
-  	var objs = document.querySelectorAll(app.root);
+  	var objs = (app.root) ? document.querySelectorAll(app.root) : {};
     if(objs.length>1) {
     	var x = 0;
     	var h ="";
@@ -742,34 +744,27 @@ $pax.prototype = {
   ajax: function(path, query, func) {
     var self = this;
     if (!query) {
-      fetch(path)
-        .then(function(response) {
+      fetch(path).then(function(response) {
           return response.text();
-        })
-        .then(function(e) {
+        }).then(function(e) {
           if (func) func(self.parse(e));
           if (self.el.progress) self.el.progress.style.display = 'none';
-        })
-        .catch(function(e) {
+        }).catch(function(e) {
           if (func) func({ error: true, xhr: e });
           if (self.el.progress) self.el.progress.style.display = 'none';
         });
     } else {
+    
       fetch(path, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: query
-        })
-        .then(function(response) {
+			method: 'POST',
+			body: pax.objectToFormData(query) //JSON.stringify(query)
+        }).then(function(response) {
           return response.text();
-        })
-        .then(function(e) {
+        }).then(function(e) {
           if (self.el.progress) self.el.progress.style.display = 'none';
           if (func) func(self.parse(e));
-        })
-        .catch(function(e) {
+        }).catch(function(e) {
+        	
           if (self.el.progress) self.el.progress.style.display = 'none';
           if (func) func({ error: true, xhr: e });
         });
@@ -869,7 +864,37 @@ $pax.prototype = {
       });
     }
     return tbody ? body + '</tbody>' : h + body + '</tbody></table>';
-  }
+    },
+    objectToFormData:function  (val, formData, name_space) {
+		if(!formData) formData = new FormData();
+		if(!name_space) name_space = '';
+		if ((typeof val !== 'undefined') && (val !== null)) {
+			if (val instanceof Date) {
+				formData.append(name_space, val.toISOString());
+			} else if (val instanceof Array) {
+				for (let i = 0; i < val.length; i++) {
+					pax.objectToFormData(val[i], formData, name_space + '[' + i + ']');
+				}
+			} else if (typeof val === 'object' && !(val instanceof File)) {
+				if (val instanceof FileList) {
+					for (let i = 0; i < val.length; i++) {
+						formData.append(name_space + '[]', val[i]);
+					}
+				} else {
+					for (let propertyName in val) {
+						if (val.hasOwnProperty(propertyName)) {
+							pax.objectToFormData(val[propertyName], formData, name_space ? name_space + '[' + propertyName + ']' : propertyName);
+						}
+					}
+				}
+			} else if (val instanceof File) {
+				formData.append(name_space, val);
+			} else {
+				formData.append(name_space, val.toString());
+			}
+		}
+		return formData;
+    }
 };
 var pax = new $pax();
 var app = pax.apps;
