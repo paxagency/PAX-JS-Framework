@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "build": "node scripts/build.js",
+    "vercel-build": "npm run build && npm run docs:sources && node scripts/prepare-vercel.js",
     "test": "npm run build && node --test test/pax.test.js",
     "docs:sources": "node scripts/generate-example-sources.js",
     "prepublishOnly": "npm test"

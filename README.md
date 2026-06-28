@@ -58,6 +58,21 @@ python3 -m http.server 8080
 # http://localhost:8080/examples/hello.html
 ```
 
+## Deploy docs on Vercel
+
+The repo includes `vercel.json`. Vercel serves the `public/` folder, which is generated at build time from `index.html`, `dist/`, `examples/`, and `docs/`.
+
+1. Import the GitHub repo in [Vercel](https://vercel.com)
+2. Framework preset: **Other** (or let `vercel.json` drive the build)
+3. Deploy — build runs `npm run vercel-build`, output is `public/`
+
+Locally preview the Vercel output:
+
+```bash
+npm run vercel-build
+python3 -m http.server 8080 --directory public
+```
+
 ## Documentation
 
 See **[index.html](index.html)** for the full guide: binding, lists, templates, `show`/`hide`/`attr:`, lifecycle, ajax, routing, and live examples.
