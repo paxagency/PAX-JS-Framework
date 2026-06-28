@@ -542,9 +542,20 @@ pax.app('dash', {
 
       <section id="routing">
         <h2>Routing</h2>
-        <p>Set <code>pax.routeHash = 1</code>, put route templates in <code>#routes</code>, and give apps a <code>url</code>. Navigate with <code>pax.link('#/page')</code>.</p>
+        <p>Set <code>pax.routeHash = 1</code>, put route templates in <code>#routes</code>, and navigate with <code>pax.link('#/page')</code>.</p>
+        <p>Each routed app needs a <code>url</code> — set it on the app def, or let PAX derive it from <code>&lt;template app="…"&gt;</code>:</p>
+        <pre><code>&lt;div id="routes"&gt;
+  &lt;template app="home"&gt;…&lt;/template&gt;
+  &lt;template app="page1"&gt;…&lt;/template&gt;
+  &lt;template app="settings_profile"&gt;…&lt;/template&gt;
+&lt;/div&gt;
+
+// auto: home → /home, page1 → /page1, settings_profile → /settings/profile
+// app="index" → /
+// override anytime: pax.app('home', { url: '/' })</code></pre>
+        <p>Underscores in the <code>app</code> name become path segments; dashes become underscores in the app key (<code>my-page</code> → app <code>my_page</code>, url <code>/my-page</code>). An explicit <code>url</code> on <code>pax.app()</code> always wins.</p>
         <p>Use <code>destroy</code> on routed apps to clear timers or listeners when the user navigates away.</p>
-        <p>See the full <a href="#ex-routing">routing example</a> below — it needs its own page for hash navigation.</p>
+        <p>See <a href="#ex-routing">routing</a> (manual urls) and <a href="#ex-routingAutomated">routingAutomated</a> (auto urls) below.</p>
       </section>
 
       <section id="shared">
@@ -573,7 +584,7 @@ pax.app('dash', {
               <tr><td><code>depends</code></td><td>Array of app names to wait for</td></tr>
               <tr><td><code>change</code></td><td>Per-field change callbacks</td></tr>
               <tr><td><code>shared</code></td><td><code>true</code> (default) or <code>false</code> for instances</td></tr>
-              <tr><td><code>url</code></td><td>Route path for routing</td></tr>
+              <tr><td><code>url</code></td><td>Route path; auto-set from <code>&lt;template app&gt;</code> if omitted</td></tr>
               <tr><td><code>init</code>, <code>loaded</code>, <code>ready</code>, <code>destroy</code></td><td>Lifecycle hooks</td></tr>
             </tbody>
           </table>
