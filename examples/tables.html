@@ -11,23 +11,27 @@
         	<h1 bind="title"></h1>
             <table>
             	<thead>
-            		<th>First Name</th>
-            		<th>Last Name</th>
-            		<th>Age</th>
+            		<tr>
+            			<th>First Name</th>
+            			<th>Last Name</th>
+            			<th>Age</th>
+            		</tr>
             	</thead>
             	<tbody bind='tbody'></tbody>
             </table>
-            <button onclick="app.home.cl()">Update Tbody</button>
+            <button onclick="pax.home.cl()">Update Tbody</button>
             <hr>
             <h1 bind="title2"></h1>
             <table bind="table"></table>
-            <button onclick="app.home.cl1()">Update Table</button>
+            <button onclick="pax.home.cl1()">Update Table</button>
             <hr>
             <h1 bind="title3"></h1>
             <table>
             	<thead>
-            		<th>Date Available</th>
-            		<th>Position</th>
+            		<tr>
+            			<th>Date Available</th>
+            			<th>Position</th>
+            		</tr>
             	</thead>
             	<tbody bind='tbody3'>
             		<tr>
@@ -36,12 +40,28 @@
             		</tr>
             	</tbody>
             </table>
+            <hr>
+            <h1 bind="title4">Scraped from HTML (no data block)</h1>
+            <table>
+            	<thead>
+            		<tr>
+            			<th>First Name</th>
+            			<th>Last Name</th>
+            			<th>Age</th>
+            		</tr>
+            	</thead>
+            	<tbody bind="scraped">
+            		<tr><td>Alice</td><td>Jones</td><td>28</td></tr>
+            		<tr><td>Bob</td><td>Lee</td><td>31</td></tr>
+            	</tbody>
+            </table>
+            <button onclick="pax.print(pax.home.data.scraped)">Show scraped data</button>
         </div>
         
     </body>
 <script src="../dist/pax.js"></script>
 <script>
-    app.home = {
+    pax.app('home', {
         data:{
         	title:"Employees",
         	tbody:[
@@ -86,7 +106,7 @@
         		{"position":"Southwest Manager","date_open":"01/12","contact":5555555555},
         	])
         }		
-    }
+    });
     
  </script> 
 

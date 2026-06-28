@@ -25,10 +25,9 @@
 <script src="../dist/pax.js"></script>
 <script>
 	pax.routeHash = true;
-    app.header = {
-    	global:1,
+    pax.app('header', {
     	templates:{
-    		nav:"<li class='{{this.active}}'><a onclick='app.header.setActive({{index}})'>{{this.label}}</a></li>"
+    		nav:"<li class='{{this.active}}'><a onclick='pax.header.setActive({{index}})'>{{this.label}}</a></li>"
     	},
         data:{
             nav:[
@@ -48,7 +47,7 @@
         	this.set("nav."+n+".active","active");
         	pax.link(this.data.nav[n].href);
         }
-    }
+    });
  </script> 
 
 </html>

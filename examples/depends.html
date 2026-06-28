@@ -10,20 +10,24 @@
     </body>
 <script src="../dist/pax.js"></script>
 <script>
-    // Per-app ajax: load runs before render, loaded maps response to data
+    pax.app('shared', {
+        load: {
+            question: { url: "https://yesno.wtf/api" }
+        }
+    });
+
     pax.app('home', {
-        load:{
-            question:{url:"https://yesno.wtf/api"},
-        },
-        template:`
+        depends: ['shared'],
+        template: `
             <h1>Ajax load test </h1>
             <p><em>(reload for a new answer)</em></p><hr />
             <h2>The answer is {{this.answer}}.<br /> <img src='{{this.image}}' /></h2>`,
-        loaded:function(){
-            this.data.answer = this.load.question.data.answer;
-            this.data.image = this.load.question.data.image;
+        loaded: function() {
+            var q = pax.shared.load.question.data;
+            this.data.answer = q.answer;
+            this.data.image = q.image;
         }
     });
-</script> 
+</script>
 
 </html>

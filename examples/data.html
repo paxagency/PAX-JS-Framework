@@ -25,19 +25,19 @@
             </select>
             <hr>
             <br>
-            <button onclick="pax.print(app.home.data)">Show Data</button>
-            <button onclick="pax.print(app.home.values)">Show Values</button>
-            <button onclick="app.home.changeData()">Change Data</button>
-            <button onclick="app.home.changeValues()">Change Values</button>
+            <button onclick="pax.print(pax.home.data)">Show Data</button>
+            <button onclick="pax.print(pax.home.values)">Show Values</button>
+            <button onclick="pax.home.changeData()">Change Data</button>
+            <button onclick="pax.home.changeValues()">Change Values</button>
         </div>
        
     </body>
 
 <script src="../dist/pax.js"></script>
 <script>
-    app.home = {
+    pax.app('home', {
         ready:function(){
-        	alert("app is ready")
+        	// app is ready
         },
         changeData:function(){
         	this.set('title',"All of my favorite flavors");
@@ -55,7 +55,7 @@
         	this.set('colors',false,{id:'green'});
         	this.set('name','Frank');
         }
-    }
+    });
    
  </script> 
 

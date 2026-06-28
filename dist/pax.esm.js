@@ -1361,6 +1361,14 @@ $pax.prototype = {
 var _pax = new $pax();
 var pax = _pax._view();
 var app = _pax.apps;
-window.addEventListener('DOMContentLoaded', function() {
-  pax.init();
-});
+function paxReady() { pax.init(); }
+if (typeof window !== 'undefined') {
+  window.pax = pax;
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', paxReady);
+  } else {
+    paxReady();
+  }
+}
+export default pax;
+export { pax };

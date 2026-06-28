@@ -10,13 +10,13 @@
         <div app='home'>
             <h1 bind='title'></h1>
             <ul bind='todos'></ul>
-            <button onclick='app.home.add()'>Add this</button><br />
+            <button onclick='pax.home.add()'>Add this</button><br />
             <input bind='inp' type='text' />
         </div>
     </body>
 <script src="../dist/pax.js"></script>
  <script>
-    app.home = {
+    pax.app('home', {
         data:{
             title:'My List',
             todos: [
@@ -27,10 +27,10 @@
             inp:''
         },
         add:function(){
-            this.push('todos',app.home.data.inp);
+            this.push('todos',this.data.inp);
             this.set('inp','');
         }
-    }
+    });
  </script> 
 
 </html>

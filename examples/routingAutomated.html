@@ -34,13 +34,13 @@
 <script src="../dist/pax.js"></script>
  <script>
     pax.routeHash=1;
-    app.home = {url:"/"}
-    app.page3 = {
+    pax.app('home', {url:"/"});
+    pax.app('page3', {
+    	templates:{title:'{{html value}}'},
     	data:{title:"PAGE 3 <i>Interactive</i>",body:"This body text is from the class data object, not from the lorem ipsum text within the template tags."},
     	ready:function(){
-    		alert("Welcome to page 3");
     	}
-    }
+    });
  </script> 
 
 </html>

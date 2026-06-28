@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>PAX — Independent component instances</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+    	<table><tbody><tr><td>
+        <div app='app1'>
+            <h2 bind='header'></h2>
+            <div app='widget'></div>
+        </div>
+       </td><td>
+       <div app='app2'>
+            <h2 bind='header'></h2>
+            <div app='widget'></div>
+        </div>
+       </td></tr></table>
+    </body>
+
+<script src="../dist/pax.js"></script>
+<script>
+    pax.app('app1', {
+        data:{ header:"Panel 1" }
+    });
+    pax.app('app2', {
+        data:{ header:"Panel 2" }
+    });
+    pax.app('widget', {
+        shared: false,
+        template:"<h3 bind='title'></h3><ul bind='colors'></ul><button onclick='pax.widget.cl()'>Change this widget only</button>",
+        data:{
+            title:"Widget",
+            colors:["Red","Blue","Green"]
+        },
+        cl:function(){
+            this.set("title", "Updated");
+            this.set("colors", ["Purple","Teal"]);
+        }
+    });
+</script>
+
+</html>

@@ -1,11 +1,32 @@
 {
   "name": "pax-js-framework",
-  "version": "0.0.155",
-  "homepage": "http://docs.paxagency.com/js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/paxagency/PAX-JS-Framework#readme",
   "license": "MIT",
   "author": "PAX Agency <hello@paxagency.com>",
-  "description": "Pax JS Framework: Minimal & Ligthweight JS Framework",
+  "description": "PAX JS Framework — minimal, HTML-first JavaScript framework with binding, routing, and ajax. No build step.",
   "main": "dist/pax.js",
+  "module": "dist/pax.esm.js",
+  "types": "pax.d.ts",
+  "files": [
+    "dist/pax.js",
+    "dist/pax.min.js",
+    "dist/pax.esm.js",
+    "dist/pax.esm.min.js",
+    "pax.d.ts",
+    "index.html",
+    "docs/example-sources.js",
+    "examples",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "npm run build && node --test test/pax.test.js",
+    "docs:sources": "node scripts/generate-example-sources.js",
+    "prepublishOnly": "npm test"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paxagency/PAX-JS-Framework.git"
@@ -13,10 +34,17 @@
   "keywords": [
     "javascript",
     "minimal",
+    "html-first",
+    "binding",
     "router",
-    "framework"
+    "framework",
+    "no-build"
   ],
   "bugs": {
     "url": "https://github.com/paxagency/PAX-JS-Framework/issues"
+  },
+  "devDependencies": {
+    "happy-dom": "^17.4.4",
+    "terser": "^5.39.0"
   }
 }

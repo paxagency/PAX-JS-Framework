@@ -23,21 +23,22 @@
 
 <script src="../dist/pax.js"></script>
 <script>
-    app.app1 = {
+    pax.app('app1', {
         data:{
         	header:"App 1",
         	message:"App 1 module below"
         }
-    }
-    app.app2 = {
+    });
+    pax.app('app2', {
         data:{
         	header:"App 2",
         	message:"App 2 module below"
         }
-    }
-    app.module = {
+    });
+    pax.app('module', {
+    	shared: true,
     	root:"[app='module']",
-    	template:"<h2 bind='header'></h2><ul bind='colors'></ul><button onclick='app.module.cl();'>Change module data</button>",
+    	template:"<h2 bind='header'></h2><ul bind='colors'></ul><button onclick='pax.module.cl();'>Change module data</button>",
         data:{
         	colors:["Red","Blue","Green"],
         	header:"Module header"
@@ -45,7 +46,7 @@
         cl:function(){
         	this.set("colors",["Purple","Teal","Red"]);
         }
-    }
+    });
 </script> 
 
 </html>

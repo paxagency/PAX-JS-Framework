@@ -11,14 +11,14 @@
             <h1 bind='title'></h1>
             <ul bind='todos'></ul>
             <h4 class='message' style='display:none;'>There are no items to do.</h4>
-            <input bind='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
-            <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
+            <input bind='inp' type='text' /><button onclick='pax.home.add()'>Add this</button>
+            <br /><br /><button onclick='pax.print(pax.home.data.todos)'>Save Data</button>
         </div>
     </body>
 <script src="../dist/pax.js"></script>
 <script>
 
-app.home = {
+pax.app('home', {
 	data:{
 		title:'My List',
 		todos: [
@@ -29,10 +29,10 @@ app.home = {
 		inp:''
 	},
 	templates:{
-		todos:`<li>{{value}} <button onclick='app.home.pop("todos",{{index}})'>x</button></li>`
+		todos:`<li>{{value}} <button onclick='pax.home.pop("todos",{{index}})'>x</button></li>`
 	},
 	add:function(){
-		this.push('todos',app.home.data.inp);
+		this.push('todos',this.data.inp);
 		this.set('inp','');
 	},
 	change:{
@@ -41,7 +41,7 @@ app.home = {
 			(!v.length) ? m.style.display = 'block' : m.style.display = 'hide';
 		}
 	}
-}
+});
 
 
 </script> 

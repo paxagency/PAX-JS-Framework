@@ -11,19 +11,19 @@
         <div app='home'>
             <input bind='inp' type='text'/>
             <h2 bind='message'>Type above for hidden message</h2>
-            <button onclick="pax.print(app.home.data.inp);">Share Input</button>
-            <button onclick="pax.print(app.home.data.message);">Share Message</button>
+            <button onclick="pax.print(pax.home.data.inp);">Share Input</button>
+            <button onclick="pax.print(pax.home.data.message);">Share Message</button>
         </div>
     </body>
 <script src="../dist/pax.js"></script>
 <script>
-    app.home = {
+    pax.app('home', {
         change:{
             inp:function(v){
-            	app.home.set('message',v.split('').reverse().join(''));
+            	this.set('message',v.split('').reverse().join(''));
             }
         }
-    }
+    });
 </script> 
 
 </html>

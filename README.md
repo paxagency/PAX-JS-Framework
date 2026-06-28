@@ -1,33 +1,67 @@
-# PAX-JS-Framework
-Micro Efficient Javascript Framework + Router * BETA
+# PAX JS Framework
 
-http://docs.paxagency.com/js/
+Micro, HTML-first JavaScript framework — binding, routing, ajax, no build step.
 
-0.0.156
+**[Full documentation →](index.html)** · [npm](https://www.npmjs.com/package/pax-js-framework) · MIT License
 
-Updated child application loading. Added objects to form data for POST requests.
+## Quick start
 
-0.0.155
+```html
+<div app="home">
+  <h1 bind="title"></h1>
+  <ul bind="items"></ul>
+  <button onclick="pax.home.add()">Add</button>
+</div>
+<script src="dist/pax.js"></script>
+<script>
+  pax.app('home', {
+    data: { title: 'My List', items: [] },
+    add: function() { this.push('items', 'New item'); }
+  });
+</script>
+```
 
-Removed JQuery dependency. Updated data.html & tables.html examples with tweaks and showing dynamic table content. 
+1. Include `dist/pax.js` (or `dist/pax.min.js` for production)
+2. Mark HTML with `app="name"` and `bind="field"`
+3. Register with `pax.app('name', { … })`
 
-0.0.154
+## Install
 
-Added parentChild.html example and updated docs website.
+```bash
+npm install pax-js-framework
+```
 
-0.0.153
+```html
+<script src="node_modules/pax-js-framework/dist/pax.min.js"></script>
+```
 
-Template brackets now remove whitespace for uses cases of {{ this.id }}
+ES module:
 
-0.0.152
+```javascript
+import pax from 'pax-js-framework/dist/pax.esm.js';
+```
 
-Added right click, open in new window, to link method
+## Develop
 
-0.0.151
+```bash
+npm install
+npm test          # build + smoke tests
+npm run build     # src → dist (js, min, esm)
+npm run docs:sources   # refresh embedded example code in index.html
+```
 
-Added cleanStr method for rendering
+## Run docs & examples locally
 
-0.0.150
+```bash
+python3 -m http.server 8080
+# http://localhost:8080/          — documentation
+# http://localhost:8080/examples/hello.html
+```
 
-Major changes to core functionality. Attributes are now "app" and "bind" to define pax element types. Shared apps 
-are connected by default. 
+## Documentation
+
+See **[index.html](index.html)** for the full guide: binding, lists, templates, `show`/`hide`/`attr:`, lifecycle, ajax, routing, and live examples.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md). **1.0.0** — stable release with directives, incremental list updates, tests, and ESM/types support.

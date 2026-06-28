@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PAX JS Framework — Documentation</title>
+  <style>
+    :root {
+      --bg: #f8f9fb;
+      --surface: #fff;
+      --text: #1a1f2e;
+      --muted: #5c6578;
+      --border: #e2e6ef;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f1f4f9;
+      --sidebar-w: 240px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
+    a { color: var(--accent); }
+    code, pre {
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+      font-size: 0.8125rem;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+    pre {
+      margin: 0;
+      background: #1a1f2e;
+      color: #e8ecf4;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 420px;
+      line-height: 1.45;
+    }
+    pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+    .layout { display: flex; min-height: 100vh; }
+    nav.sidebar {
+      position: sticky; top: 0;
+      width: var(--sidebar-w); height: 100vh; overflow-y: auto;
+      background: var(--surface); border-right: 1px solid var(--border);
+      padding: 1.25rem 0; flex-shrink: 0;
+    }
+    nav.sidebar .brand {
+      padding: 0 1rem 0.85rem; font-weight: 700; font-size: 1.05rem;
+      border-bottom: 1px solid var(--border); margin-bottom: 0.75rem;
+    }
+    nav.sidebar .brand span { color: var(--accent); }
+    nav.sidebar a {
+      display: block; padding: 0.3rem 1rem; color: var(--muted);
+      font-size: 0.85rem; text-decoration: none;
+    }
+    nav.sidebar a:hover { color: var(--accent); background: var(--accent-soft); }
+    nav.sidebar .group {
+      padding: 0.65rem 1rem 0.2rem; font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+    }
+    main { flex: 1; max-width: 920px; padding: 2rem 2.5rem 4rem; min-width: 0; }
+    h1 { font-size: 1.85rem; margin: 0 0 0.4rem; letter-spacing: -0.02em; }
+    h2 {
+      font-size: 1.3rem; margin: 2.75rem 0 0.85rem; padding-top: 0.5rem;
+    }
+    h2.part {
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--accent); margin: 3rem 0 0.5rem;
+      padding: 0; border: none;
+    }
+    h2.part:first-of-type { margin-top: 1.5rem; }
+    h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
+    .lead { font-size: 1.1rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .step-num {
+      display: inline-block; background: var(--accent); color: #fff;
+      width: 1.5rem; height: 1.5rem; line-height: 1.5rem; text-align: center;
+      border-radius: 50%; font-size: 0.8rem; font-weight: 700; margin-right: 0.35rem;
+    }
+    .demo-panel {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      margin: 1rem 0 1.5rem; background: var(--surface);
+    }
+    .demo-panel .demo-code { border-right: 1px solid var(--border); min-width: 0; }
+    .demo-panel .demo-code-label,
+    .demo-panel .demo-live-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); padding: 0.45rem 1rem;
+      background: var(--code-bg); border-bottom: 1px solid var(--border);
+    }
+    .demo-live {
+      display: flex; flex-direction: column; min-height: 120px;
+    }
+    .demo-live-inner {
+      flex: 1; padding: 1rem 1.25rem; background: #fafbfc;
+    }
+    .demo-live iframe {
+      flex: 1; width: 100%; border: none; min-height: 260px; background: #fff;
+    }
+    .demo-live.tall iframe { min-height: 380px; }
+    .demo-live.xtall iframe { min-height: 520px; }
+    .example-block { margin-bottom: 2.5rem; }
+    .example-block h3 { margin-top: 0; }
+    .example-block .ex-meta {
+      font-size: 0.9rem; color: var(--muted); margin: -0.25rem 0 0.75rem;
+    }
+    .example-block .open-link { font-size: 0.85rem; margin-top: 0.5rem; display: inline-block; }
+    .callout {
+      background: var(--accent-soft); border-left: 4px solid var(--accent);
+      padding: 0.85rem 1.1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; font-size: 0.92rem;
+    }
+    .callout strong { display: block; margin-bottom: 0.2rem; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1rem 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    }
+    th, td { padding: 0.55rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--code-bg); font-size: 0.78rem; }
+    tr:last-child td { border-bottom: none; }
+    .ref-section { margin-top: 3rem; padding-top: 1rem; border-top: 2px solid var(--border); }
+    .ref-section h2 { margin-top: 0; }
+    details { margin: 0.75rem 0; }
+    details summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+    footer {
+      margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
+      font-size: 0.85rem; color: var(--muted);
+    }
+    @media (max-width: 820px) {
+      .demo-panel { grid-template-columns: 1fr; }
+      .demo-panel .demo-code { border-right: none; border-bottom: 1px solid var(--border); }
+      nav.sidebar { position: relative; width: 100%; height: auto; max-height: 45vh; }
+      .layout { flex-direction: column; }
+      main { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="brand">PAX <span>JS</span></div>
+      <div class="group">Start here</div>
+      <a href="#intro">Introduction</a>
+      <a href="#install">Install</a>
+      <div class="group">Part 1 — Basics</div>
+      <a href="#step1">1. First app</a>
+      <a href="#step2">2. bind fields</a>
+      <a href="#step3">3. Lists &amp; push</a>
+      <a href="#step4">4. Two-way input</a>
+      <a href="#step5">5. Click handlers</a>
+      <div class="group">Part 2 — Core</div>
+      <a href="#binding">How binding works</a>
+      <a href="#templates">Templates</a>
+      <a href="#directives">Show, hide &amp; attr</a>
+      <a href="#lifecycle">Lifecycle</a>
+      <div class="group">Part 3 — Advanced</div>
+      <a href="#binding-advanced">Lists, forms &amp; tables</a>
+      <a href="#ajax">Ajax load</a>
+      <a href="#depends">Dependencies</a>
+      <a href="#routing">Routing</a>
+      <a href="#shared">Shared instances</a>
+      <a href="#debug">Debug mode</a>
+      <div class="group">Reference &amp; examples</div>
+      <a href="#reference">API reference</a>
+      <a href="#examples">Live examples</a>
+    </nav>
+
+    <main>
+      <!-- INTRO -->
+      <section id="intro">
+        <h1>PAX JS Framework</h1>
+        <p class="lead">HTML-first JavaScript — add <code>app</code> and <code>bind</code> to your markup, register a tiny JS object, and go. No build step. One file.</p>
+        <p>This guide starts simple and builds up — basics first, then core concepts, then advanced binding, ajax, and routing.</p>
+      </section>
+
+      <section id="install">
+        <h2>Install</h2>
+        <pre><code>&lt;script src="dist/pax.js"&gt;&lt;/script&gt;
+&lt;!-- production: dist/pax.min.js --&gt;</code></pre>
+        <p>Then mark a root element with <code>app="name"</code>, register with <code>pax.app('name', { … })</code>, and PAX boots on page load.</p>
+      </section>
+
+      <!-- PART 1 -->
+      <h2 class="part">Part 1 — The basics</h2>
+
+      <section id="step1">
+        <h2><span class="step-num">1</span> Your first app</h2>
+        <p>An app is a named chunk of HTML + data. Put template text inside the root element, or pass a <code>template</code> string. Use <code>{{this.field}}</code> to print escaped data.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;div app="hello"&gt;{{this.message}}&lt;/div&gt;
+
+&lt;script src="dist/pax.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  pax.app('hello', {
+    data: { message: 'Hello World' }
+  });
+&lt;/script&gt;</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="hello">{{this.message}}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="step2">
+        <h2><span class="step-num">2</span> bind fields</h2>
+        <p><code>bind="field"</code> connects an element to <code>data.field</code>. Text binds update when you call <code>this.set('field', value)</code>.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;div app="greeter"&gt;
+  &lt;h1 bind="title"&gt;&lt;/h1&gt;
+  &lt;button onclick="pax.greeter.greet()"&gt;Greet&lt;/button&gt;
+&lt;/div&gt;
+
+pax.app('greeter', {
+  data: { title: 'Welcome' },
+  greet: function() {
+    this.set('title', 'Hello, PAX!');
+  }
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="greeter">
+                <h1 bind="title"></h1>
+                <button onclick="pax.greeter.greet()">Greet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="step3">
+        <h2><span class="step-num">3</span> Lists &amp; push</h2>
+        <p>A <code>&lt;ul bind="todos"&gt;</code> holds an array of strings. Call <code>this.push('todos', value)</code> to add a row — PAX renders each item as an <code>&lt;li&gt;</code> for you.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;div app="todo"&gt;
+  &lt;h1 bind="title"&gt;&lt;/h1&gt;
+  &lt;ul bind="todos"&gt;&lt;/ul&gt;
+  &lt;input bind="inp" type="text" /&gt;
+  &lt;button onclick="pax.todo.add()"&gt;Add&lt;/button&gt;
+&lt;/div&gt;
+
+pax.app('todo', {
+  data: {
+    title: 'My List',
+    todos: ['Learn PAX'],
+    inp: ''
+  },
+  add: function() {
+    if (!this.data.inp) return;
+    this.push('todos', this.data.inp);
+    this.set('inp', '');
+  }
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="todo">
+                <h1 bind="title"></h1>
+                <ul bind="todos"></ul>
+                <input bind="inp" type="text" placeholder="New item" />
+                <button onclick="pax.todo.add()">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="step4">
+        <h2><span class="step-num">4</span> Two-way input &amp; change</h2>
+        <p>Inputs sync back to <code>data</code> automatically. Use a <code>change</code> handler to react — here we reverse the typed text into another bind.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;div app="mirror"&gt;
+  &lt;input bind="inp" type="text" placeholder="Type here" /&gt;
+  &lt;h2 bind="message"&gt;Reversed text appears here&lt;/h2&gt;
+&lt;/div&gt;
+
+pax.app('mirror', {
+  change: {
+    inp: function(v) {
+      this.set('message', v.split('').reverse().join(''));
+    }
+  }
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="mirror">
+                <input bind="inp" type="text" placeholder="Type here" />
+                <h2 bind="message">Reversed text appears here</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="step5">
+        <h2><span class="step-num">5</span> Click handlers</h2>
+        <p>Write normal JS in <code>onclick="…"</code>. PAX rewires handlers at render (CSP-friendly). Call app methods via <code>pax.appname.method()</code>.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;button onclick="pax.counter.up()"&gt;+1&lt;/button&gt;
+&lt;span bind="count"&gt;0&lt;/span&gt;
+
+pax.app('counter', {
+  data: { count: 0 },
+  up: function() {
+    this.set('count', this.data.count + 1);
+  }
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="counter">
+                <button onclick="pax.counter.up()">+1</button>
+                <span bind="count">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PART 2 -->
+      <h2 class="part">Part 2 — Core concepts</h2>
+
+      <section id="binding">
+        <h2>How binding works</h2>
+        <p>Each <code>bind="field"</code> connects to <code>data.field</code>. PAX picks the wiring from the <strong>HTML tag</strong> — you don't declare types in JS.</p>
+
+        <table>
+          <thead><tr><th>Element</th><th><code>data</code> shape</th><th>How it updates</th></tr></thead>
+          <tbody>
+            <tr><td><code>h1</code>, <code>p</code>, <code>span</code>, <code>div</code>, …</td><td>string</td><td><code>this.set('field', val)</code></td></tr>
+            <tr><td><code>input</code>, <code>textarea</code></td><td>string</td><td>Two-way — typing updates <code>data</code></td></tr>
+            <tr><td><code>ul</code> / <code>ol</code></td><td>array of strings</td><td><code>push()</code>, <code>pop()</code></td></tr>
+          </tbody>
+        </table>
+
+        <p>For a list, put an array in <code>data</code> and call <code>push</code> — PAX renders one <code>&lt;li&gt;</code> per item using the default template <code>{{value}}</code>.</p>
+        <pre><code>&lt;ul bind="todos"&gt;&lt;/ul&gt;
+data: { todos: ['Learn PAX', 'Build something'] }
+
+this.push('todos', 'New item');
+this.pop('todos');       // remove last
+this.pop('todos', 1);    // remove at index</code></pre>
+        <p>More element types (select, checkbox, tables, custom row templates) are in <a href="#binding-advanced">Lists, forms &amp; tables</a>.</p>
+      </section>
+
+      <section id="templates">
+        <h2>Templates</h2>
+        <p>Use <code>{{…}}</code> in app <code>template</code> strings or inside bind markup. Output is escaped by default.</p>
+        <pre><code>{{this.name}}            // text from data
+{{this.name || 'Guest'}} // fallback when empty
+{{html this.body}}       // trusted HTML (use carefully)
+{{myApp.data.field}}     // read another app</code></pre>
+        <div class="callout">
+          <strong>Template vs bind</strong>
+          <code>{{this.x}}</code> in an app <code>template</code> renders once at boot. <code>bind</code> fields stay live when you <code>set()</code>.
+        </div>
+      </section>
+
+      <section id="directives">
+        <h2>Show, hide &amp; attr</h2>
+        <p>Toggle visibility and attributes from data — no manual <code>style.display</code> or helper strings in templates.</p>
+        <pre><code>&lt;p show="!items.length"&gt;Nothing here yet.&lt;/p&gt;
+&lt;p hide="items.length"&gt;List is empty.&lt;/p&gt;
+&lt;img attr:src="this.image" /&gt;</code></pre>
+        <p>Expressions use <code>data</code> paths (<code>todos.length</code>), <code>!</code> for negation, or app methods (<code>isAdmin()</code>).</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>&lt;div app="showdemo"&gt;
+  &lt;ul bind="items"&gt;&lt;/ul&gt;
+  &lt;p show="!items.length"&gt;No items yet.&lt;/p&gt;
+  &lt;button onclick="pax.showdemo.add()"&gt;Add&lt;/button&gt;
+&lt;/div&gt;
+
+pax.app('showdemo', {
+  data: { items: [] },
+  add: function() {
+    this.push('items', 'Item ' + (this.data.items.length + 1));
+  }
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="showdemo">
+                <ul bind="items"></ul>
+                <p show="!items.length">No items yet.</p>
+                <button onclick="pax.showdemo.add()">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="lifecycle">
+        <h2>Lifecycle hooks</h2>
+        <p>Each app boots in order. Pick the hook that matches when you need to run code:</p>
+        <table>
+          <thead><tr><th>Hook</th><th>When</th><th>Use for</th></tr></thead>
+          <tbody>
+            <tr><td><code>init</code></td><td>Before ajax / render</td><td>Early setup</td></tr>
+            <tr><td><code>ready</code></td><td>After first render</td><td>Focus, logging, DOM plugins</td></tr>
+          </tbody>
+        </table>
+        <p>Ajax hooks (<code>loaded</code>), route teardown (<code>destroy</code>), and <code>depends</code> are covered in <a href="#ajax">Part 3</a>.</p>
+      </section>
+
+      <!-- PART 3 -->
+      <h2 class="part">Part 3 — Advanced</h2>
+
+      <section id="binding-advanced">
+        <h2>Lists, forms &amp; tables</h2>
+        <p>Full bind reference — for when you need more than strings in a list.</p>
+
+        <table>
+          <thead><tr><th>Element</th><th><code>data</code> shape</th><th>How it updates</th></tr></thead>
+          <tbody>
+            <tr><td><code>ul</code> / <code>ol</code></td><td>array (strings or objects)</td><td><code>push()</code>, <code>pop()</code>, <code>render()</code></td></tr>
+            <tr><td><code>input type="checkbox"</code></td><td><code>{ id, text }</code></td><td><code>id: 1</code> = checked</td></tr>
+            <tr><td><code>select</code></td><td>array of <code>{id, text}</code></td><td>Options from data; selection in <code>values</code></td></tr>
+            <tr><td><code>select multiple</code></td><td>array of <code>{id, text}</code></td><td>Selected items in <code>values</code></td></tr>
+            <tr><td>wrapper <code>bind-type="radio"</code></td><td>array of <code>{id, text}</code></td><td>Selected option in <code>values</code></td></tr>
+            <tr><td><code>tbody</code> / <code>table</code></td><td>array of objects</td><td><code>push()</code>, <code>pop()</code>, <code>render()</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Custom list templates</h3>
+        <p>String arrays use the default row: <code>&lt;li data-index="{{index}}"&gt;{{value}}&lt;/li&gt;</code>. For objects or buttons per row, set <code>templates</code>:</p>
+        <pre><code>data: { todos: [{ text: 'Learn PAX', done: 0 }] },
+templates: {
+  todos: `&lt;li data-index="{{index}}"&gt;{{this.text}}
+    &lt;button onclick='pax.home.pop("todos",{{index}})'&gt;x&lt;/button&gt;&lt;/li&gt;`
+}</code></pre>
+        <p>In list rows use <code>{{this.field}}</code>, <code>{{index}}</code>, and <code>{{value}}</code> for the current item. Put <code>{{…}}</code> inside the <code>&lt;ul&gt;</code> in HTML to use that as the row template instead.</p>
+        <p>See <a href="#ex-todoAdvanced">todoAdvanced.html</a> for a full example. <code>push</code> and <code>pop</code> patch individual rows when possible (append/remove) so other rows keep focus; call <code>render()</code> yourself after sort or bulk edits.</p>
+
+        <h3>Checkbox, select &amp; radio</h3>
+        <pre><code>&lt;label&gt;&lt;input type="checkbox" bind="agree" /&gt; I agree&lt;/label&gt;
+&lt;select bind="colors"&gt;&lt;/select&gt;
+&lt;select multiple bind="tags"&gt;&lt;/select&gt;
+&lt;div bind="size" bind-type="radio"&gt;&lt;/div&gt;
+
+this.set('colors', false, { id: 'green' });  // set selected option</code></pre>
+        <p><code>input type="radio"</code> alone is not a bind target — use a wrapper with <code>bind-type="radio"</code>.</p>
+
+        <h3>DOM scrape vs data</h3>
+        <p>On init, if a bind key is <strong>missing</strong> from <code>data</code>, PAX reads the DOM once (existing <code>&lt;li&gt;</code> items, table rows, select options). If the key <strong>exists</strong> — even <code>[]</code> or <code>''</code> — data wins.</p>
+        <p>Use <code>filters</code> to transform values before render: <code>filters: { price: function(v) { return '$' + v; } }</code>. Override tag detection with <code>bind-type</code> when needed.</p>
+      </section>
+
+      <section id="ajax">
+        <h2>Ajax load</h2>
+        <p>Declare <code>load: { key: { url: '…' } }</code>. Map the response in <code>loaded</code> before the template renders. Use <code>error</code> on a load entry for failed requests.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>pax.app('home', {
+  load: {
+    question: {
+      url: 'https://yesno.wtf/api',
+      error: function(err) {
+        this.data.answer = 'unavailable';
+      }
+    }
+  },
+  loaded: function() {
+    this.data.answer = this.load.question.data.answer;
+    this.data.image = this.load.question.data.image;
+  },
+  template: '&lt;h1&gt;{{this.answer}}&lt;/h1&gt;&lt;img src="{{this.image}}" /&gt;'
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="ajaxdemo"></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong><code>loaded</code> vs <code>ready</code></strong>
+          Map ajax data in <code>loaded</code> (before render). Use <code>ready</code> for DOM work after the template is on screen.
+        </div>
+      </section>
+
+      <section id="depends">
+        <h2>App dependencies</h2>
+        <p><code>depends: ['otherApp']</code> waits until the other app finishes load + render. Apps without an <code>[app]</code> element still boot when something depends on them.</p>
+        <div class="demo-panel">
+          <div class="demo-code">
+            <div class="demo-code-label">Code</div>
+            <pre><code>pax.app('session', {
+  data: { user: 'Jane Doe', role: 'Admin' },
+  template: '&lt;small&gt;Session: {{this.user}}&lt;/small&gt;'
+});
+
+pax.app('dash', {
+  depends: ['session'],
+  loaded: function() {
+    this.data.msg = 'Welcome, ' + pax.session.data.user;
+  },
+  template: '&lt;strong&gt;{{this.msg}}&lt;/strong&gt;'
+});</code></pre>
+          </div>
+          <div class="demo-live">
+            <div class="demo-live-label">Live</div>
+            <div class="demo-live-inner">
+              <div app="session"></div>
+              <div app="dash" style="margin-top:0.5rem"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="routing">
+        <h2>Routing</h2>
+        <p>Set <code>pax.routeHash = 1</code>, put route templates in <code>#routes</code>, and give apps a <code>url</code>. Navigate with <code>pax.link('#/page')</code>.</p>
+        <p>Use <code>destroy</code> on routed apps to clear timers or listeners when the user navigates away.</p>
+        <p>See the full <a href="#ex-routing">routing example</a> below — it needs its own page for hash navigation.</p>
+      </section>
+
+      <section id="shared">
+        <h2>Shared &amp; independent instances</h2>
+        <p><code>shared: true</code> (default) — one data model, mirrored DOM. <code>shared: false</code> — each <code>[app="name"]</code> gets its own clone; clicks target the right instance. Multiple shared roots stay in sync via <code>mirror</code>.</p>
+        <p>See <a href="#ex-parentChild">parentChild</a> and <a href="#ex-parentChildInstances">parentChildInstances</a> below.</p>
+      </section>
+
+      <section id="debug">
+        <h2>Debug mode</h2>
+        <pre><code>pax.config.debug = true;  // before pax.app() calls</code></pre>
+        <p>Logs warnings for typos, missing apps, handler errors, and bad <code>depends</code>.</p>
+      </section>
+
+      <!-- REFERENCE -->
+      <section id="reference" class="ref-section">
+        <h2>API reference</h2>
+        <details open>
+          <summary>App definition keys</summary>
+          <table>
+            <thead><tr><th>Key</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>data</code>, <code>values</code></td><td>App state (merged on re-register)</td></tr>
+              <tr><td><code>template</code>, <code>templates</code></td><td>HTML templates with <code>{{…}}</code></td></tr>
+              <tr><td><code>load</code></td><td>Ajax entries — each needs <code>url</code>; optional <code>error</code></td></tr>
+              <tr><td><code>depends</code></td><td>Array of app names to wait for</td></tr>
+              <tr><td><code>change</code></td><td>Per-field change callbacks</td></tr>
+              <tr><td><code>shared</code></td><td><code>true</code> (default) or <code>false</code> for instances</td></tr>
+              <tr><td><code>url</code></td><td>Route path for routing</td></tr>
+              <tr><td><code>init</code>, <code>loaded</code>, <code>ready</code>, <code>destroy</code></td><td>Lifecycle hooks</td></tr>
+            </tbody>
+          </table>
+        </details>
+        <details>
+          <summary>Instance methods (on every app)</summary>
+          <table>
+            <thead><tr><th>Method</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>this.set(id, val)</code></td><td>Update data and re-render binds</td></tr>
+              <tr><td><code>this.push(id, val)</code></td><td>Append to array bind</td></tr>
+              <tr><td><code>this.pop(id)</code></td><td>Remove from array bind</td></tr>
+              <tr><td><code>this.render()</code></td><td>Re-run bind wiring</td></tr>
+            </tbody>
+          </table>
+        </details>
+        <details>
+          <summary>Bind types (auto-detected)</summary>
+          <table>
+            <thead><tr><th>Element</th><th>Data</th><th>Methods</th></tr></thead>
+            <tbody>
+              <tr><td>Text elements</td><td>string</td><td><code>set()</code></td></tr>
+              <tr><td><code>input</code>, <code>textarea</code></td><td>string</td><td>two-way + <code>set()</code></td></tr>
+              <tr><td><code>input type="checkbox"</code></td><td><code>{id, text}</code></td><td>two-way + <code>set()</code></td></tr>
+              <tr><td><code>select</code></td><td><code>[{id, text}]</code></td><td><code>set()</code> / <code>values</code></td></tr>
+              <tr><td><code>select multiple</code></td><td><code>[{id, text}]</code></td><td><code>values</code> (array)</td></tr>
+              <tr><td><code>bind-type="radio"</code></td><td><code>[{id, text}]</code></td><td><code>set()</code> / <code>values</code></td></tr>
+              <tr><td><code>ul</code>, <code>ol</code>, <code>tbody</code></td><td>array</td><td><code>push()</code>, <code>pop()</code>, <code>render()</code></td></tr>
+            </tbody>
+          </table>
+        </details>
+        <details>
+          <summary>HTML directives</summary>
+          <table>
+            <thead><tr><th>Attribute</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>show="expr"</code></td><td>Visible when expression is truthy</td></tr>
+              <tr><td><code>hide="expr"</code></td><td>Hidden when expression is truthy</td></tr>
+              <tr><td><code>attr:name="expr"</code></td><td>Bind attribute to data (<code>attr:src</code>, <code>attr:checked</code>, …)</td></tr>
+            </tbody>
+          </table>
+        </details>
+        <details>
+          <summary>Framework (<code>pax</code>)</summary>
+          <table>
+            <thead><tr><th>API</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>pax.app(name, def)</code></td><td>Register app (<code>register</code> alias)</td></tr>
+              <tr><td><code>pax.get(name, ref?)</code></td><td>Get app or instance (<code>ref</code> = index for <code>shared: false</code>)</td></tr>
+              <tr><td><code>pax.getVals(key, ids)</code></td><td>Read bind values from an app</td></tr>
+              <tr><td><code>pax.version</code></td><td>Framework version string</td></tr>
+              <tr><td><code>pax.link(path)</code></td><td>Navigate (hash or history)</td></tr>
+              <tr><td><code>pax.routeHash</code></td><td><code>1</code> for <code>#/path</code> routing</td></tr>
+              <tr><td><code>pax.config.debug</code></td><td>Enable dev warnings</td></tr>
+              <tr><td><code>pax.el.routes</code></td><td>Route outlet selector (default <code>#routes</code>)</td></tr>
+            </tbody>
+          </table>
+        </details>
+      </section>
+
+      <!-- EXAMPLES -->
+      <section id="examples">
+        <h2>Full examples</h2>
+        <p>Each example shows the <strong>source code</strong> next to a <strong>live preview</strong>. Open the full page for more room.</p>
+
+        <article class="example-block" id="ex-hello" data-src="examples/hello.html">
+          <h3>hello.html</h3>
+          <p class="ex-meta">Minimal app — template + data.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live"><div class="demo-live-label">Live</div><iframe src="examples/hello.html" title="hello example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/hello.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-change" data-src="examples/change.html">
+          <h3>change.html</h3>
+          <p class="ex-meta">Two-way input and <code>change</code> handlers.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live"><div class="demo-live-label">Live</div><iframe src="examples/change.html" title="change example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/change.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-data" data-src="examples/data.html">
+          <h3>data.html</h3>
+          <p class="ex-meta">Forms, selects, lists, and <code>set()</code>.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/data.html" title="data example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/data.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-todoBasic" data-src="examples/todoBasic.html">
+          <h3>todoBasic.html</h3>
+          <p class="ex-meta">Simple todo list with push.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live"><div class="demo-live-label">Live</div><iframe src="examples/todoBasic.html" title="todoBasic example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/todoBasic.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-todo" data-src="examples/todo.html">
+          <h3>todo.html</h3>
+          <p class="ex-meta">Todo with templates and handlers.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/todo.html" title="todo example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/todo.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-todoAdvanced" data-src="examples/todoAdvanced.html">
+          <h3>todoAdvanced.html</h3>
+          <p class="ex-meta">Advanced todo patterns.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/todoAdvanced.html" title="todoAdvanced example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/todoAdvanced.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-load" data-src="examples/load.html">
+          <h3>load.html</h3>
+          <p class="ex-meta">Ajax <code>load</code> + <code>loaded</code> hook.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live"><div class="demo-live-label">Live</div><iframe src="examples/load.html" title="load example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/load.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-depends" data-src="examples/depends.html">
+          <h3>depends.html</h3>
+          <p class="ex-meta">Wait for another app before booting.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live"><div class="demo-live-label">Live</div><iframe src="examples/depends.html" title="depends example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/depends.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-tables" data-src="examples/tables.html">
+          <h3>tables.html</h3>
+          <p class="ex-meta">Table / tbody binding and DOM scrape.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live xtall"><div class="demo-live-label">Live</div><iframe src="examples/tables.html" title="tables example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/tables.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-parentChild" data-src="examples/parentChild.html">
+          <h3>parentChild.html</h3>
+          <p class="ex-meta">Nested shared apps (<code>shared: true</code>).</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/parentChild.html" title="parentChild example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/parentChild.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-parentChildInstances" data-src="examples/parentChildInstances.html">
+          <h3>parentChildInstances.html</h3>
+          <p class="ex-meta">Independent instances (<code>shared: false</code>).</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/parentChildInstances.html" title="parentChildInstances example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/parentChildInstances.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-routing" data-src="examples/routing.html">
+          <h3>routing.html</h3>
+          <p class="ex-meta">Hash routing with shared shell.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/routing.html" title="routing example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/routing.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-routingAutomated" data-src="examples/routingAutomated.html">
+          <h3>routingAutomated.html</h3>
+          <p class="ex-meta">Auto route paths from <code>&lt;template app&gt;</code>.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live tall"><div class="demo-live-label">Live</div><iframe src="examples/routingAutomated.html" title="routingAutomated example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/routingAutomated.html">Open full page →</a>
+        </article>
+
+        <article class="example-block" id="ex-nav" data-src="examples/nav.html">
+          <h3>nav.html</h3>
+          <p class="ex-meta">Shell nav + routed content.</p>
+          <div class="demo-panel">
+            <div class="demo-code"><div class="demo-code-label">Code</div><pre><code>Loading…</code></pre></div>
+            <div class="demo-live xtall"><div class="demo-live-label">Live</div><iframe src="examples/nav.html" title="nav example"></iframe></div>
+          </div>
+          <a class="open-link" href="examples/nav.html">Open full page →</a>
+        </article>
+      </section>
+
+      <footer>
+        PAX JS Framework · MIT · <a href="https://github.com/paxagency/PAX-JS-Framework">GitHub</a> ·
+        <code>npm run build</code> for minified dist
+      </footer>
+    </main>
+  </div>
+
+  <script src="docs/example-sources.js"></script>
+  <script src="dist/pax.js"></script>
+  <script>
+    // Inline tutorial demos (unique app names)
+    pax.app('hello', { data: { message: 'Hello World' } });
+
+    pax.app('greeter', {
+      data: { title: 'Welcome' },
+      greet: function() { this.set('title', 'Hello, PAX!'); }
+    });
+
+    pax.app('todo', {
+      data: { title: 'My List', todos: ['Learn PAX'], inp: '' },
+      add: function() {
+        if (!this.data.inp) return;
+        this.push('todos', this.data.inp);
+        this.set('inp', '');
+      }
+    });
+
+    pax.app('mirror', {
+      change: {
+        inp: function(v) {
+          this.set('message', v.split('').reverse().join(''));
+        }
+      }
+    });
+
+    pax.app('counter', {
+      data: { count: 0 },
+      up: function() { this.set('count', this.data.count + 1); }
+    });
+
+    pax.app('showdemo', {
+      data: { items: [] },
+      add: function() {
+        this.push('items', 'Item ' + (this.data.items.length + 1));
+      }
+    });
+
+    pax.app('ajaxdemo', {
+      load: {
+        question: {
+          url: 'https://yesno.wtf/api',
+          error: function() {
+            this.data.answer = 'unavailable';
+            this.data.image = '';
+          }
+        }
+      },
+      loaded: function() {
+        this.data.answer = this.load.question.data.answer;
+        this.data.image = this.load.question.data.image;
+      },
+      template: '<h3>The answer is {{this.answer}}</h3><img src="{{this.image}}" alt="" style="max-width:120px" />'
+    });
+
+    pax.app('session', {
+      data: { user: 'Jane Doe', role: 'Admin' },
+      template: '<small>Session: {{this.user}} ({{this.role}})</small>'
+    });
+
+    pax.app('dash', {
+      depends: ['session'],
+      loaded: function() {
+        this.data.msg = 'Welcome, ' + pax.session.data.user;
+      },
+      template: '<strong>{{this.msg}}</strong>'
+    });
+
+    // Example source panels (embedded — no fetch)
+    if (window.PAX_EXAMPLE_SOURCES) {
+      document.querySelectorAll('.example-block[data-src]').forEach(function(block) {
+        var name = block.dataset.src.replace('examples/', '');
+        var src = PAX_EXAMPLE_SOURCES[name];
+        if (src) block.querySelector('.demo-code pre code').textContent = src.trim();
+      });
+    }
+  </script>
+</body>
+</html>

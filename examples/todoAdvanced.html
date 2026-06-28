@@ -13,14 +13,14 @@
         <div app='home'>
             <h1 bind='title'></h1>
             <ul bind='todos'></ul>
-            <h4 class='message' style='display:none;'>There are no items to do.</h4>
-            <input bind='inp' type='text' /><button onclick='app.home.add()'>Add this</button>
-            <br /><br /><button onclick='pax.print(app.home.data.todos)'>Save Data</button>
+            <h4 class='message' show="!todos.length">There are no items to do.</h4>
+            <input bind='inp' type='text' /><button onclick='pax.home.add()'>Add this</button>
+            <br /><br /><button onclick='pax.print(pax.home.data.todos)'>Save Data</button>
         </div>
     </body>  
  <script src="../dist/pax.js"></script>
  <script>
-    app.home = {
+    pax.app('home', {
         data:{
             title:'My List',
             todos: [
@@ -33,17 +33,16 @@
         templates:{
             todos:`<li data-index='{{index}}' class='{{home.getClass()}}'> 
                 <label><input type='checkbox'  
-                    onchange='app.home.updateTodos(this)' 
-                    {{home.getCheck}} />   
+                    onchange='pax.home.updateTodos(this)' 
+                    attr:checked="this.done" />   
                     {{this.text}} 
-                    <button onclick='app.home.pop("todos",{{index}})'>x</button>
+                    <button onclick='pax.home.pop("todos",{{index}})'>x</button>
                     </label></li>`
         },
         add:function(){
             this.push('todos',{text:this.data.inp,done:0},0);
             this.set('inp','');
         },
-        getCheck:function(n,o){return (o.done==1) ? 'checked' : '';},
         getClass:function(n,o){return (o.done==1) ? 'strike' : '';},
         
         updateTodos: function(checkbox) {
@@ -53,17 +52,9 @@
 			this.data.todos.sort(function(a, b) {
 			  	return a.done - b.done;
 			});
-			pax.render('home', 'todos');
-	   },
-        change:{
-            todos:function(v){
-				var m = document.getElementsByClassName('message')[0];
-				(!v.length) ? m.style.display = 'block' : m.style.display = 'hide';
-			}
-        }
-    }
-    
-    
+			this.render('todos');
+	   }
+    });
  </script> 
 
 </html>

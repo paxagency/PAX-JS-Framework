@@ -13,11 +13,12 @@
     </body>
 <script src="../dist/pax.js"></script>
 <script>
-    app.home = {
+    // pax.config.debug = true; // optional: warnings for typos, missing binds, etc.
+    pax.app('home', {
         data:{
             message:"Hello World"
         }
-    }
+    });
  </script> 
 
 </html>
