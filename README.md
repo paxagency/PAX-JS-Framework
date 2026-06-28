@@ -1,8 +1,8 @@
 # PAX JS Framework
 
-Micro, HTML-first JavaScript framework — binding, routing, ajax, no build step.
+Micro JavaScript framework — binding, routing, ajax. No build step.
 
-**[Full documentation →](index.html)** · [npm](https://www.npmjs.com/package/pax-js-framework) · MIT License
+**[Full documentation →](https://pax-js-framework.vercel.app)** · [npm](https://www.npmjs.com/package/pax-js-framework) · MIT License
 
 ## Quick start
 
@@ -75,7 +75,7 @@ python3 -m http.server 8080 --directory public
 
 ## Documentation
 
-See **[index.html](index.html)** for the full guide: binding, lists, templates, `show`/`hide`/`attr:`, lifecycle, ajax, routing, and live examples.
+See **[pax-js-framework.vercel.app](https://pax-js-framework.vercel.app)** for the full guide: binding, lists, templates, `show`/`hide`/`attr:`, lifecycle, ajax, routing, and live examples. (Or open [index.html](index.html) locally.)
 
 ## Changelog
 

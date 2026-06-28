@@ -1,10 +1,10 @@
 {
   "name": "pax-js-framework",
-  "version": "1.0.0",
-  "homepage": "https://github.com/paxagency/PAX-JS-Framework#readme",
+  "version": "1.0.02",
+  "homepage": "https://pax-js-framework.vercel.app",
   "license": "MIT",
   "author": "PAX Agency <hello@paxagency.com>",
-  "description": "PAX JS Framework — minimal, HTML-first JavaScript framework with binding, routing, and ajax. No build step.",
+  "description": "Micro JavaScript framework — binding, routing, ajax. No build step.",
   "main": "dist/pax.js",
   "module": "dist/pax.esm.js",
   "types": "pax.d.ts",
@@ -35,7 +35,7 @@
   "keywords": [
     "javascript",
     "minimal",
-    "html-first",
+    "micro",
     "binding",
     "router",
     "framework",

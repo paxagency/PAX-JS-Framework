@@ -2,7 +2,7 @@
 
 ## 1.0.0 — 2026-06-28
 
-First stable release. HTML-first micro framework — no build step required.
+First stable release. Micro framework — binding, routing, ajax. No build step.
 
 ### Added
 - **`show` / `hide` directives** — toggle visibility from data expressions
