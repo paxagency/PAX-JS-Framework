@@ -11,7 +11,7 @@ $pax.prototype = {
   routeMove:1,
   el:{routes:'#routes'},
   config:{debug:false},
-  version:'1.0.04',
+  version:'1.0.5',
   _initialized:false,
   _known:['data','templates','template','change','load','filters','values','str','el','tag','config','root','url','depends','init','ready','loaded','destroy','shared'],
   _hints:{temlpates:'templates',tempalte:'template',redy:'ready',lod:'load',chnage:'change',templete:'template',global:'depends'},

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.5 — 2026-06-29
+
+### Changed
+- **Docs** — install section uses pinned unpkg CDN URLs; footer shows runtime version
+- **Version** — normalize to semver `1.0.5` (npm/unpkg use `1.0.4`, not `1.0.04`)
+- **`pax.version` test** — asserts against `package.json` instead of a hardcoded string
+- **`unpkg` field** in `package.json` → `dist/pax.min.js`
+
 ## 1.0.04 — 2026-06-28
 
 ### Added

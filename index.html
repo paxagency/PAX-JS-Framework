@@ -184,8 +184,16 @@
 
       <section id="install">
         <h2>Install</h2>
-        <pre><code>&lt;script src="dist/pax.js"&gt;&lt;/script&gt;
-&lt;!-- production: dist/pax.min.js --&gt;</code></pre>
+        <p>Load from <a href="https://unpkg.com/pax-js-framework">unpkg</a> (no install), via npm, or use <code>dist/</code> from this repo.</p>
+        <pre><code>&lt;!-- CDN (latest) --&gt;
+&lt;script src="https://unpkg.com/pax-js-framework/dist/pax.js"&gt;&lt;/script&gt;
+&lt;!-- minified: https://unpkg.com/pax-js-framework/dist/pax.min.js --&gt;
+
+&lt;!-- npm install pax-js-framework --&gt;
+&lt;script src="node_modules/pax-js-framework/dist/pax.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- local clone / this site --&gt;
+&lt;script src="dist/pax.js"&gt;&lt;/script&gt;</code></pre>
         <p>Then mark a root element with <code>app="name"</code>, register with <code>pax.app('name', { … })</code>, and PAX boots on page load.</p>
       </section>
 
@@ -200,7 +208,7 @@
             <div class="demo-code-label">Code</div>
             <pre><code>&lt;div app="hello"&gt;{{this.message}}&lt;/div&gt;
 
-&lt;script src="dist/pax.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/pax-js-framework/dist/pax.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   pax.app('hello', {
     data: { message: 'Hello World' }
@@ -814,8 +822,9 @@ pax.app('page1', {
       </section>
 
       <footer>
-        PAX JS Framework · MIT · <a href="https://github.com/paxagency/PAX-JS-Framework">GitHub</a> ·
-        <code>npm run build</code> for minified dist
+        PAX JS Framework <span id="pax-version"></span> · MIT ·
+        <a href="https://github.com/paxagency/PAX-JS-Framework">GitHub</a> ·
+        <a href="https://www.npmjs.com/package/pax-js-framework">npm</a>
       </footer>
     </main>
   </div>
@@ -891,6 +900,7 @@ pax.app('page1', {
     });
 
     // Example source panels (embedded — no fetch)
+    document.getElementById('pax-version').textContent = 'v' + pax.version;
     if (window.PAX_EXAMPLE_SOURCES) {
       document.querySelectorAll('.example-block[data-src]').forEach(function(block) {
         var name = block.dataset.src.replace('examples/', '');

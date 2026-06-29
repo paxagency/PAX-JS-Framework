@@ -15,9 +15,11 @@ function bootPax(html, register) {
   return window;
 }
 
+const pkg = require('../package.json');
+
 test('pax.version is set', () => {
   const window = bootPax('');
-  assert.strictEqual(window.pax.version, '1.0.0');
+  assert.strictEqual(window.pax.version, pkg.version);
 });
 
 test('bind set updates text', () => {

@@ -1,8 +1,9 @@
 {
   "name": "pax-js-framework",
-  "version": "1.0.04",
+  "version": "1.0.5",
   "homepage": "https://pax-js-framework.vercel.app",
   "license": "MIT",
+  "unpkg": "dist/pax.min.js",
   "author": "PAX Agency <hello@paxagency.com>",
   "description": "Micro JavaScript framework — binding, routing, ajax. No build step.",
   "main": "dist/pax.js",
