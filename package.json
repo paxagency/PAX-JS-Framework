@@ -46,7 +46,7 @@
     "url": "https://github.com/paxagency/PAX-JS-Framework/issues"
   },
   "devDependencies": {
-    "happy-dom": "^17.4.4",
+    "happy-dom": "^20.8.9",
     "terser": "^5.39.0"
   }
 }
