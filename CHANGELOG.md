@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.04 — 2026-06-28
+
+### Added
+- **`pax.urlTail`** — path segments after the matched route (also on the active app as `urlTail`)
+- **Routing docs** — `pax.url`, `pax.path`, `pax.getVars`, and trailing-segment usage
+
+### Changed
+- **`pax.d.ts`** — typings for `url`, `urlTail`, `path`, `getVars`
+- **`pax.version`** synced with package version
+
 ## 1.0.0 — 2026-06-28
 
 First stable release. Micro framework — binding, routing, ajax. No build step.

@@ -1,6 +1,7 @@
 var $pax = function(o) {};
 $pax.prototype = {
   url:[],
+  urlTail:[],
   routes:{},
   routeHash:0,
   apps:{},
@@ -10,7 +11,7 @@ $pax.prototype = {
   routeMove:1,
   el:{routes:'#routes'},
   config:{debug:false},
-  version:'1.0.0',
+  version:'1.0.04',
   _initialized:false,
   _known:['data','templates','template','change','load','filters','values','str','el','tag','config','root','url','depends','init','ready','loaded','destroy','shared'],
   _hints:{temlpates:'templates',tempalte:'template',redy:'ready',lod:'load',chnage:'change',templete:'template',global:'depends'},
@@ -1195,6 +1196,9 @@ $pax.prototype = {
       }
       document.querySelector(this.apps[key].root).innerHTML = self.loadTemplate;
       this.activeRoute = this.routes[route];
+      var depth = route === '/' ? 0 : route.slice(1).split('/').length;
+      this.urlTail = this.url.slice(depth);
+      if (routeApp) routeApp.urlTail = this.urlTail;
       this.loadApps([key], done);
       if (this.routeReady) this.routeReady();
     } else if(done) {

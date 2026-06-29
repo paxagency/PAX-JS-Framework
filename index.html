@@ -554,6 +554,24 @@ pax.app('dash', {
 // app="index" → /
 // override anytime: pax.app('home', { url: '/' })</code></pre>
         <p>Underscores in the <code>app</code> name become path segments; dashes become underscores in the app key (<code>my-page</code> → app <code>my_page</code>, url <code>/my-page</code>). An explicit <code>url</code> on <code>pax.app()</code> always wins.</p>
+
+        <h3>URL segments — <code>pax.url</code></h3>
+        <p>On every navigation, PAX splits the path into <code>pax.url</code> — an array of segments between slashes. Routing picks the <strong>longest registered match</strong>; anything after that stays in the array for your app to read.</p>
+        <pre><code>// #/page1/edit/42  →  pax.url = ['page1', 'edit', '42']
+// route /page1 matches → page1 app boots
+// pax.urlTail = ['edit', '42']  (segments after the route)
+
+pax.app('page1', {
+  url: '/page1',
+  ready: function() {
+    this.data.action = pax.url[1];       // 'edit'
+    this.data.id = pax.url[2];           // '42'
+    // or use pax.urlTail / this.urlTail
+  }
+});</code></pre>
+        <p><code>pax.path</code> is the full path string (no <code>#</code>). Query strings are in <code>pax.getVars</code> (e.g. <code>?tab=settings</code> → <code>pax.getVars.tab</code>).</p>
+        <p>There is no built-in <code>:id</code> param syntax yet — read <code>pax.url</code> or <code>pax.urlTail</code> in <code>ready</code> / <code>loaded</code> and validate length yourself. That keeps the router small; named params can come later if needed.</p>
+
         <p>Use <code>destroy</code> on routed apps to clear timers or listeners when the user navigates away.</p>
         <p>See <a href="#ex-routing">routing</a> (manual urls) and <a href="#ex-routingAutomated">routingAutomated</a> (auto urls) below.</p>
       </section>
@@ -637,6 +655,10 @@ pax.app('dash', {
               <tr><td><code>pax.getVals(key, ids)</code></td><td>Read bind values from an app</td></tr>
               <tr><td><code>pax.version</code></td><td>Framework version string</td></tr>
               <tr><td><code>pax.link(path)</code></td><td>Navigate (hash or history)</td></tr>
+              <tr><td><code>pax.url</code></td><td>Path segments array — <code>['page1', 'edit', '42']</code></td></tr>
+              <tr><td><code>pax.urlTail</code></td><td>Segments after the matched route</td></tr>
+              <tr><td><code>pax.path</code></td><td>Full path string (no hash)</td></tr>
+              <tr><td><code>pax.getVars</code></td><td>Query string key/value pairs</td></tr>
               <tr><td><code>pax.routeHash</code></td><td><code>1</code> for <code>#/path</code> routing</td></tr>
               <tr><td><code>pax.config.debug</code></td><td>Enable dev warnings</td></tr>
               <tr><td><code>pax.el.routes</code></td><td>Route outlet selector (default <code>#routes</code>)</td></tr>

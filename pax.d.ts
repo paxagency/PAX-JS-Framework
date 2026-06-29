@@ -10,6 +10,7 @@ declare interface PaxApp {
   shared?: boolean;
   root?: string | HTMLElement;
   url?: string;
+  urlTail?: string[];
   init?: (this: PaxApp) => void;
   loaded?: (this: PaxApp) => void;
   ready?: (this: PaxApp) => void;
@@ -32,6 +33,10 @@ declare interface PaxLoadEntry {
 
 declare interface PaxFramework {
   version: string;
+  url: string[];
+  urlTail: string[];
+  path: string;
+  getVars: Record<string, string>;
   routeHash: number;
   routeFade: number;
   routeMove: number;
